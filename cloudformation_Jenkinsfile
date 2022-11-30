@@ -1,0 +1,61 @@
+#!groovy
+@Library([
+    'cicd-pipeline',
+    'cop-pipeline-configuration@c4c-ncp_springboot_template_Yizhi',
+]) _ // Why is there a trailing underscore `_`? https://stackoverflow.com/a/48798886
+
+def params = [
+	envVars: env,
+]
+
+node {
+	params.put("appName", readProperties(file: 'gradle.properties').artifactId)
+}
+
+def config = [
+	/**
+	 * Replace with the shared configurations of your choice.
+	 * Your project inherits and merges all these shared configurations. Find each of them at:
+	 * https://github.com/nike-cop-pipeline/cop-pipeline-configuration/tree/c4c-ncp/resources
+	 */
+	profile : [
+		debug	: "true",
+		common	: 'team/maui/c4c/infra-common.groovy',
+		deploy	: 'aws-account/deploy/userservices/maui/c4c/infra-deploy.groovy',
+		tags	: 'team/maui/c4c/tags.groovy'
+	],
+	
+	// Configurations beyond this line will override their counterparts inherited from above.
+
+	deploymentEnvironment : [
+		test: [
+			cf: [
+				stackName: params.appName + '-infra-test',
+				templateFile: './cloudformation/' + params.appName + '-infra.yaml',
+				parameters: [ // will substitute `Parameters` in `templateFile` above
+					ApplicationName: params.appName,
+					ALBIdentifier: params.appName,
+				]
+			],
+		],
+
+		prod: [
+			cf: [
+				stackName: params.appName + '-infra',
+				templateFile: './cloudformation/' + params.appName + '-infra.yaml',
+				parameters: [
+					ApplicationName: params.appName,
+					ALBIdentifier: params.appName,
+				]
+			],
+		],
+	],
+]
+
+node {
+	// use the build number as part of the deployment version number
+	checkout scm
+	config = mergeConfiguration(config, params)
+}
+
+cloudformationPipeline(config)

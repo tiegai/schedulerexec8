@@ -1,0 +1,16 @@
+# Learn more about Docker Compose @ https://docs.docker.com/compose/
+# Learn more about Docker Compose file @ https://docs.docker.com/compose/compose-file/
+version: '3.4'
+services:
+  # Define the services you wish to run as docker containers.
+  # These can be very useful for local development, functional testing in Jenkins, and more.
+  # e.g. ⇩⇩⇩
+  cerberus:
+    image: artifactory.nike.com:9001/nike/localcerberus
+    ports:
+      - "5006:5006"
+
+  # More examples are available:
+  # - S3 @ https://github.com/nike-gc-ncp/notificationsmsproc/blob/108b07399c1a4a9a0502c282cbdf0c2b87a25302/docker-compose.yml#L24
+  # - SQS @ https://github.com/nike-gc-ncp/notificationsmsproc/blob/108b07399c1a4a9a0502c282cbdf0c2b87a25302/docker-compose.yml#L9
+  # - DynamoDB @ https://github.com/nike-gc-ncp/notificationpushproc/blob/41a0cffaf5d497ff5c9625407f5071ea8f6cd7d5/docker-compose.yml#L23

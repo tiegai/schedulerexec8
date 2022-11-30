@@ -1,0 +1,61 @@
+qualityConfig:
+  application:
+    name: springboot-template
+    description: A SpringBoot template to get start with.
+    tier: 3
+    domain: GC-MarTech
+    classification: Highly confidential #classification can be Restricted Use, Highly confidential http://nisp.nike.com/dc/
+    owner: Lst-GT.GC-MarTech.GCNCP.Support@nike.com
+    team: GC-MarTech
+    email: Lst-GT.GC-MarTech.GCNCP.Support@nike.com
+    costcenter: 105125
+    organization: NCP
+    target_availability: 99.75
+    pager_duty: https://nikeb2c.pagerduty.com/service-directory/P4LBC00
+
+  phases:
+    build:
+      - checkstyleMain:
+          metricSource: checkstyle
+          metricFile: build/reports/checkstyle/main.xml
+          required: true
+          reportFiles:
+            - build/reports/checkstyle/*
+          reportIndex: build/reports/checkstyle/main.html
+      - spotbugsMain:
+          metricSource: findbugs
+          metricFile: build/reports/spotbugs/main.xml
+          reportFiles:
+            - build/reports/spotbugs/*
+          reportIndex: build/reports/spotbugs/main.html
+          required: true
+          qualityGate: true
+      - Jacoco:
+          metricSource: jacoco
+          metricFile: build/reports/jacoco/test/jacocoTestReport.xml
+          required: true
+          reportFiles:
+            - build/reports/jacoco/test/jacocoTestReport.xml
+          reportIndex: build/reports/jacoco/index.html
+          metricRules: conf/quality-jacoco-rules.json
+      - pmd:
+          metricSource: pmd
+          metricFile: build/reports/pmd/main.xml
+          required: true
+          reportFiles:
+            - build/reports/pmd/*
+          reportIndex: build/reports/pmd/main.html
+      #- pit:
+      #    metricSource: pit
+      #    metricFile: build/reports/pitest/mutations.xml
+      #    required: false
+      #    reportFiles:
+      #      - build/reports/pitest/*
+      #    reportIndex: build/reports/pitest/index.html
+      #    metricRules: conf/quality-pit-rules.json
+    scan:
+      - assortment:
+         metricSource: custom
+         metricFile: build/reports/twistlock/twistlockscan_out.json
+         reportIndex: build/reports/twistlock/twistlockscan.json
+         metricRules: codequality/twistlockRules.json

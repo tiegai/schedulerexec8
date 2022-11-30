@@ -1,0 +1,64 @@
+{
+    "rules": [
+      {
+        "displayName": "Compliance Failures: Critical",
+        "metricKey": "results.complianceDistribution.critical",
+        "value": 0,
+        "comparator": "E"
+      },
+      {
+        "displayName": "Compliance Failures: High",
+        "metricKey": "results.complianceDistribution.high",
+        "value": 5,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Compliance Failures: Medium",
+        "metricKey": "results.complianceDistribution.medium",
+        "value": 10,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Compliance Failures: Low",
+        "metricKey": "results.complianceDistribution.low",
+        "value": 10,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Compliance Failures: Total",
+        "metricKey": "results.complianceDistribution.total",
+        "value": 10,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Vulnerability Failures: Critical",
+        "metricKey": "results.vulnerabilityDistribution.critical",
+        "value": 0,
+        "comparator": "E"
+      },
+      {
+        "displayName": "Vulnerability Failures: High",
+        "metricKey": "results.vulnerabilityDistribution.high",
+        "value": 5,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Vulnerability Failures: Medium",
+        "metricKey": "results.vulnerabilityDistribution.medium",
+        "value": 10,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Vulnerability Failures: Low",
+        "metricKey": "results.vulnerabilityDistribution.low",
+        "value": 10,
+        "comparator": "LT"
+      },
+      {
+        "displayName": "Vulnerability Failures: Total",
+        "metricKey": "results.vulnerabilityDistribution.total",
+        "value": 10,
+        "comparator": "LT"
+      }
+    ]
+  }

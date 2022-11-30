@@ -1,0 +1,3 @@
+task integrationTest(type: Test) {
+	println "Still a dummy integration test."
+}

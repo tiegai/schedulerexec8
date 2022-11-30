@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Environment:
+    Type: String
+  VPC:
+    Type: String
+  ApplicationName:
+    Type: String
+  ALBSecurityGroup:
+    Type: String
+  Subnets:
+    Type: CommaDelimitedList
+  DomainName:
+    Type: String
+  ALBIdentifier:
+    Type: String
+  CertificateARN:
+    Type: String
+  
+Conditions:
+  CreatePerfResources: !Equals [!Ref Environment, perf]
+  IfNotProduction: !Not [ !Equals [!Ref Environment, prod] ]
+
+Resources:
+  Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${ApplicationName}_${Environment}_role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: /
+
+  InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles: 
+        - !Ref Role
+      InstanceProfileName: !Sub ${ApplicationName}_${Environment}_instanceprofile
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${ApplicationName}_${Environment}_sg
+      GroupDescription: security group for SpringBoot service
+      VpcId: !Ref VPC
+
+  ALBIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: tcp
+      ToPort: 8080
+      FromPort: 8080
+      SourceSecurityGroupId: !Ref ALBSecurityGroup
+      SourceSecurityGroupOwnerId: !Ref AWS::AccountId
+      Description: Allow ALB to make requests
+
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Scheme: internal
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: !Ref Subnets
+      Type: application
+      Name: !Sub ${ALBIdentifier}-ALB
+
+  TargetGroupALB:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckPath: /springboot_demo/healthcheck
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 8080
+      Port: 8080
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      Name: !Sub ${ALBIdentifier}-tg
+
+  ListenerHttpsALB:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+        -
+          CertificateArn: !Ref CertificateARN
+      DefaultActions:
+        -
+          TargetGroupArn: !Ref TargetGroupALB
+          Type: forward
+      LoadBalancerArn: !Ref ALB
+      Port: 443
+      Protocol: HTTPS
+
+  Route53ALB:
+    Type: AWS::Route53::RecordSet
+    Condition: IfNotProduction
+    Properties:
+      HostedZoneName: !Sub
+        - ${DomainName}.
+        - {DomainName: !Ref DomainName}
+      Name: !Sub
+        - ${ALBIdentifier}.${DomainName}
+        - {DomainName: !Ref DomainName}
+      SetIdentifier: !Ref ALBIdentifier
+      Type: CNAME
+      Weight: 100
+      TTL: '300'
+      ResourceRecords:
+        - !GetAtt ALB.DNSName
+
+  PrivateRoute53ALB: 
+    Type: AWS::Route53::HostedZone
+    Properties: 
+      Name: !Sub
+        - ${ALBIdentifier}.${DomainName}
+        - {DomainName: !Ref DomainName}
+      VPCs:
+        - 
+          VPCId: !Ref VPC
+          VPCRegion: !Sub ${AWS::Region}
+
+  ProxyDNSRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId : !Ref PrivateRoute53ALB
+      Name: !Sub
+        - ${ALBIdentifier}.${DomainName}
+        - {DomainName: !Ref DomainName}
+      AliasTarget:
+        DNSName: !Sub
+        - dualstack.${ALBDNS}
+        - {ALBDNS: !GetAtt ALB.DNSName}
+        HostedZoneId: !GetAtt ALB.CanonicalHostedZoneID
+      Type: A
+
+Outputs:
+  SecurityGroup:
+    Description: Security Group
+    Value: !Ref SecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-SG"
+  InstanceProfile:
+    Description: Instance Profile
+    Value: !Ref InstanceProfile
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceProfile"
+  TargetGroupArn:
+    Description: Load Balancer Target Group Arn
+    Value: !Ref TargetGroupALB
+    Export:
+      Name: !Sub "${AWS::StackName}-targetgroup-Arn"
+  TargetGroupListnerArn:
+    Description: Load Balancer Target Group Listener Arn
+    Value: !Ref ListenerHttpsALB
+    Export:
+      Name: !Sub "${AWS::StackName}-targetgroup-listner-Arn"
+  TargetGroupFullName:
+    Description: Load Balancer Target Group Full Name
+    Value: !GetAtt TargetGroupALB.TargetGroupFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-targetgroup-FullName"
+  LoadBalancerArn:
+    Description: Load Balancer Arn
+    Value: !Ref ALB
+    Export:
+      Name: !Sub "${AWS::StackName}-ALB-Arn"
+  LoadBalancerFullName:
+    Description: Load Balancer Full Name
+    Value: !GetAtt ALB.LoadBalancerFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-ALB-FullName"

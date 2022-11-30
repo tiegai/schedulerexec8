@@ -1,0 +1,37 @@
+// Add build class folders for any glob patterns you want to leave out of the Jacoco reports.
+// Ideally, cap-common model could be filtered automatically so that boilerplate getters and setters
+// wouldn't set off code coverage violations, but the current version of Jacoco we're using lacks
+// any kind of sophisticated filtering
+//
+// You can import this into any other gradle module using the following syntax:
+//
+//      apply from: rootProject.file('gradle/coverageExcludes.gradle')
+//
+// You can access 'packageExcludes' and  'coverageExcludes' directly in the importing module
+// (don't prepend it with "ext.")
+
+/**
+ * Exclude packages we wish to ignore in pitest
+ */
+ext.packageExcludes = [
+        'com.nike.phylon',
+        "com.nike.${project.name}.configuration",
+        "com.nike.${project.name}.exception",
+        "com.nike.${project.name}.model",
+        "com.nike.${project.name}.entity",
+        "com.nike.${project.name}.server"
+]
+
+def globifiedPackages = ext.packageExcludes.collect({ "$it.*" })
+
+ext.classExcludes = [
+        "com.nike.${project.name}.Application",
+        "com.nike.${project.name}.Constants"
+]
+
+/* coverageExcludesGlobs gives us java packages and java classes in the dotted globby form */
+ext.coverageExcludesGlobs = globifiedPackages + ext.classExcludes
+
+/* coverageExcludes gives us java packages and java classes the slashy globby pathspec form */
+ext.coverageExcludes = ext.packageExcludes.collect({ "**/${it.replace('.', '/')}/**/*" }) +
+        ext.classExcludes.collect({ "**/${it.replace('.', '/')}.*"})
