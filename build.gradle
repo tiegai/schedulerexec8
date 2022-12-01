@@ -94,6 +94,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// https://mvnrepository.com/artifact/io.netty/netty-all
+	implementation 'io.netty:netty-all:4.1.63.Final'
+	// https://mvnrepository.com/artifact/org.codehaus.groovy/groovy
+	implementation 'org.codehaus.groovy:groovy:3.0.10'
+	implementation 'com.google.code.gson:gson:2.9.0'
 
 
     // Spring dependencies
