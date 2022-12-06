@@ -350,7 +350,7 @@ public class SampleXxlJob {
             String responseMsg = result.toString();
 
             XxlJobHelper.log(responseMsg);
-            System.out.println("http remote:executor" + responseMsg);
+            System.out.println("http remote:basicHttpJobHandler" + responseMsg);
 
             return;
         } catch (Exception e) {

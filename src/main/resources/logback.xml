@@ -2,7 +2,7 @@
 <configuration debug="false" scan="true" scanPeriod="1 seconds">
 
     <contextName>logback</contextName>
-    <property name="log.path" value="//Users/JCh527/xxl-job-executor-sample-springboot.log"/>
+    <property name="log.path" value="//Users/JCh527/ncp-scheduler-log/ncp-executor-executor.log"/>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
