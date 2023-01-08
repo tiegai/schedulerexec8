@@ -42,7 +42,7 @@ public class GlueFactory {
 	 * @return
 	 * @throws Exception
 	 */
-	public IJobHandler loadNewInstance(String codeSource) throws Exception{
+	public IJobHandler loadNewInstance(String codeSource) throws Exception {
 		if (codeSource != null && codeSource.trim().length() > 0) {
 			Class<?> clazz = getCodeSourceClass(codeSource);
 			if (clazz != null) {
@@ -59,8 +59,8 @@ public class GlueFactory {
 		}
 		throw new IllegalArgumentException(">>>>>>>>>>> xxl-glue, loadNewInstance error, instance is null");
 	}
-	private Class<?> getCodeSourceClass(String codeSource){
-		try {//md5
+	private Class<?> getCodeSourceClass(String codeSource) {
+		try {
 			byte[] md5 = MessageDigest.getInstance("MD5").digest(codeSource.getBytes());
 			String md5Str = new BigInteger(1, md5).toString(16);
 

@@ -1,6 +1,6 @@
 package com.nike.ncp.scheduler.common.biz.model;
-import java.io.Serializable;
 
+import java.io.Serializable;
 
 public class IdleBeatParam implements Serializable {
     private static final long serialVersionUID = 42L;

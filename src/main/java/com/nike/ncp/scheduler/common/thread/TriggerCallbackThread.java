@@ -223,7 +223,7 @@ public class TriggerCallbackThread {
         FileUtil.writeFileContent(callbackLogFile, callbackParamListBytes);
     }
 
-    private void retryFailCallbackFile(){
+    private void retryFailCallbackFile() {
 
         // valid
         File callbackLogPath = new File(failCallbackFilePath);

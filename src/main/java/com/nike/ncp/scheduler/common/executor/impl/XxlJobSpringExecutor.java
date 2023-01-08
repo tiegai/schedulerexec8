@@ -76,22 +76,22 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         }
     }*/
 
-    private void initJobHandlerMethodRepository(ApplicationContext applicationContext) {
-        if (applicationContext == null) {
+    private void initJobHandlerMethodRepository(ApplicationContext applicationContextParam) {
+        if (applicationContextParam == null) {
             return;
         }
         // init job handler from method
-        String[] beanDefinitionNames = applicationContext.getBeanNamesForType(Object.class, false, true);
+        String[] beanDefinitionNames = applicationContextParam.getBeanNamesForType(Object.class, false, true);
         for (String beanDefinitionName : beanDefinitionNames) {
 
             // get bean
             Object bean = null;
-            Lazy onBean = applicationContext.findAnnotationOnBean(beanDefinitionName, Lazy.class);
+            Lazy onBean = applicationContextParam.findAnnotationOnBean(beanDefinitionName, Lazy.class);
             if (onBean != null) {
                 LOGGER.debug("xxl-job annotation scan, skip @Lazy Bean:{}", beanDefinitionName);
                 continue;
             } else {
-                bean = applicationContext.getBean(beanDefinitionName);
+                bean = applicationContextParam.getBean(beanDefinitionName);
             }
 
             // filter method

@@ -1,7 +1,7 @@
 package com.nike.ncp.scheduler.common.util;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,7 +28,7 @@ public class DateUtil {
         }
 
         Map<String, DateFormat> dateFormatMap = DATE_FORMAT_THREAD_LOCAL.get();
-        if(dateFormatMap != null && dateFormatMap.containsKey(pattern)) {
+        if (dateFormatMap != null && dateFormatMap.containsKey(pattern)) {
             return dateFormatMap.get(pattern);
         }
 

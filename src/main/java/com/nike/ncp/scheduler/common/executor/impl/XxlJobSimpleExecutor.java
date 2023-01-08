@@ -47,13 +47,13 @@ public class XxlJobSimpleExecutor extends XxlJobExecutor {
     }
 
 
-    private void initJobHandlerMethodRepository(List<Object> xxlJobBeanList) {
-        if (xxlJobBeanList == null || xxlJobBeanList.size() == 0) {
+    private void initJobHandlerMethodRepository(List<Object> xxlJobBeanListParam) {
+        if (xxlJobBeanListParam == null || xxlJobBeanListParam.size() == 0) {
             return;
         }
 
         // init job handler from method
-        for (Object bean: xxlJobBeanList) {
+        for (Object bean: xxlJobBeanListParam) {
             // method
             Method[] methods = bean.getClass().getDeclaredMethods();
             if (methods.length == 0) {

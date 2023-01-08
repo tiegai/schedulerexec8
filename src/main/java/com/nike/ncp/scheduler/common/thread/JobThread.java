@@ -28,8 +28,7 @@ import java.util.concurrent.TimeoutException;
  * handler thread
  */
 public class JobThread extends Thread {
-	private static Logger LOGGER = LoggerFactory.getLogger(JobThread.class);
-
+	private static Logger logger = LoggerFactory.getLogger(JobThread.class);
 	private int jobId;
 	private IJobHandler handler;
 	private LinkedBlockingQueue<TriggerParam> triggerQueue;
@@ -64,7 +63,7 @@ public class JobThread extends Thread {
 	public ReturnT<String> pushTriggerQueue(TriggerParam triggerParam) {
 		// avoid repeat
 		if (triggerLogIdSet.contains(triggerParam.getLogId())) {
-			LOGGER.info(">>>>>>>>>>> repeate trigger job, logId:{}", triggerParam.getLogId());
+			logger.info(">>>>>>>>>>> repeate trigger job, logId:{}", triggerParam.getLogId());
 			return new ReturnT<String>(ReturnT.FAIL_CODE, "repeate trigger job, logId:" + triggerParam.getLogId());
 		}
 
@@ -76,16 +75,16 @@ public class JobThread extends Thread {
     /**
      * kill job thread
      *
-     * @param stopReason
+     * @param stopReas
      */
-	public void toStop(String stopReason) {
+	public void toStop(String stopReas) {
 		/**
 		 * Thread.interrupt只支持终止线程的阻塞状态(wait、join、sleep)，
 		 * 在阻塞出抛出InterruptedException异常,但是并不会终止运行的线程本身；
 		 * 所以需要注意，此处彻底销毁本线程，需要通过共享变量方式；
 		 */
 		this.toStop = true;
-		this.stopReason = stopReason;
+		this.stopReason = stopReas;
 	}
 
     /**
@@ -103,7 +102,7 @@ public class JobThread extends Thread {
     	try {
 			handler.init();
 		} catch (Throwable e) {
-			LOGGER.error(e.getMessage(), e);
+			logger.error(e.getMessage(), e);
 		}
 
 		// execute
@@ -245,9 +244,9 @@ public class JobThread extends Thread {
 		try {
 			handler.destroy();
 		} catch (Throwable e) {
-			LOGGER.error(e.getMessage(), e);
+			logger.error(e.getMessage(), e);
 		}
 
-		LOGGER.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
+		logger.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
 	}
 }

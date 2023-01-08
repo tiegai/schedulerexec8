@@ -114,12 +114,12 @@ public class XxlJobExecutor  {
 
     // ---------------------- admin-client (rpc invoker) ----------------------
     private static List<AdminBiz> adminBizList;
-    private void initAdminBizList(String adminAddresses, String accessToken) throws Exception {
-        if (adminAddresses != null && adminAddresses.trim().length() > 0) {
-            for (String address : adminAddresses.trim().split(",")) {
-                if (address != null && address.trim().length() > 0) {
+    private void initAdminBizList(String adminAddressesParam, String accessTokenParam) throws Exception {
+        if (adminAddressesParam != null && adminAddressesParam.trim().length() > 0) {
+            for (String addressTemp : adminAddressesParam.trim().split(",")) {
+                if (addressTemp != null && addressTemp.trim().length() > 0) {
 
-                    AdminBiz adminBiz = new AdminBizClient(address.trim(), accessToken);
+                    AdminBiz adminBiz = new AdminBizClient(addressTemp.trim(), accessTokenParam);
 
                     if (adminBizList == null) {
                         adminBizList = new ArrayList<AdminBiz>();
@@ -137,26 +137,26 @@ public class XxlJobExecutor  {
     // ---------------------- executor-server (rpc provider) ----------------------
     private EmbedServer embedServer = null;
 
-    private void initEmbedServer(String address, String ip, int port, String appname, String accessToken) throws Exception {
+    private void initEmbedServer(String addressParam, String ipParam, int portParam, String appNameParam, String accessTokenParam) throws Exception {
 
         // fill ip port
-        port = port > 0 ? port : NetUtil.findAvailablePort(9999);
-        ip = (ip != null && ip.trim().length() > 0) ? ip : IpUtil.getIp();
+        portParam = portParam > 0 ? portParam : NetUtil.findAvailablePort(9999);
+        ipParam = (ipParam != null && ipParam.trim().length() > 0) ? ipParam : IpUtil.getIp();
 
         // generate address
-        if (address == null || address.trim().length() == 0) {
-            String ipPortAddress = IpUtil.getIpPort(ip, port);   // registry-address：default use address to registry , otherwise use ip:port if address is null
-            address = "http://{ip_port}/".replace("{ip_port}", ipPortAddress);
+        if (addressParam == null || addressParam.trim().length() == 0) {
+            String ipPortAddress = IpUtil.getIpPort(ipParam, portParam);   // registry-address：default use address to registry , otherwise use ip:port if address is null
+            addressParam = "http://{ip_port}/".replace("{ip_port}", ipPortAddress);
         }
 
         // accessToken
-        if (accessToken == null || accessToken.trim().length() == 0) {
+        if (accessTokenParam == null || accessTokenParam.trim().length() == 0) {
             LOGGER.warn(">>>>>>>>>>> xxl-job accessToken is empty. To ensure system security, please set the accessToken.");
         }
 
         // start
         embedServer = new EmbedServer();
-        embedServer.start(address, port, appname, accessToken);
+        embedServer.start(addressParam, portParam, appNameParam, accessTokenParam);
     }
 
     private void stopEmbedServer() {
