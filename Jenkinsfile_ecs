@@ -1,285 +1,115 @@
 #!groovy
-@Library(['cop-pipeline-bootstrap', 'cop-pipeline-step']) _
-loadPipelines('main')
-
-def app = 'springboot'
-def domainName = 'onencp'
-def slackChannel = '#gcncp-jenkins-auto-notifications'
-def stackName = 'onencp-springboot'
-def twistlockProjectName = 'onencp.product-springboot'
-
-
-Map splunkDetails = [:]
-
-node {
-    if (params.Flow == 'RELEASE') {
-        splunkDetails = withCerberus.readSecrets(
-				env: 'china-v2',
-                sdbPath: 'shared/notification/credentials'
-        )
-    } else {
-        splunkDetails = withCerberus.readSecrets(
-				env: 'china-v2',
-                sdbPath: 'shared/notification/credentials'
-        )
-    }
-}
-
-// TODO , plz update values for test  & prod @developer
-Map testRPSScaling = [
-        taskMinCapacity                : 3,
-        taskMaxCapacity                : 12,
-        desiredCapacity                : 3,
-        rpsScalingScaleInCooldown      : 300,
-        rpsScalingScaleOutCooldown     : 300,
-        rpsAutoScalingTargetValue      : 600,
-        loadBalancerResourceLabel      : 'app/productonencp-internal-alb/a02fb02c02cc4994',
-]
-
-Map prodRPSScaling = [
-        taskMinCapacity                : 3,
-        taskMaxCapacity                : 12,
-        desiredCapacity                : 3,
-        rpsScalingScaleInCooldown      : 300,
-        rpsScalingScaleOutCooldown     : 300,
-        rpsAutoScalingTargetValue      : 600,
-        loadBalancerResourceLabel                  : 'app/productonencp-internal-alb/fccd1ee03ce6d5b5',
-]
-
-// TODO , plz setting canary @developer @devops
-Map canaryExecutionConfig = [
-        version             : 'v1',
-        canaryMode          : 'manual',
-        metricsAccount      : 'sfx-commerce',
-        lifetimeDurationMins: 3,
-        analysisIntervalMins: 1,
-        lookbackType        : 'growing',
-        beginAfterMins      : 1, // 0 if no warm up time needed
-        baselineStackName   : stackName,
-        thresholds          : [
-                marginal: 75,
-                pass    : 95,
-        ],
-        stepSeconds         : 10, // <- 10s is the reporting interval as configured in CMS
-        canaryConfig        : 'file://canary-config.json',
-        notificationChannels: [
-                [
-                        type       : 'slack',
-                        on         : ['success', 'failure'],
-                        destination: slackChannel,
-                ]
-        ]
-]
+@Library([
+		'cicd-pipeline',
+		'cop-pipeline-configuration@c4c-ncp_springboot_template_Yizhi',
+		'cop-pipeline-step'
+]) _ // Why is there a trailing underscore `_`? https://stackoverflow.com/a/48798886
 
 def config = [
-		// TODO , append build params @devops
-	    buildDiscarder: [
-	      buildNumbersToKeep : 10,
-	      buildDaysToKeep: 30,
-	    ],
-	    disableConcurrentBuilds: true,
-
-        usePraDispatch       : false,
-        buildFlow            : [
-			//TODO fix the issue of "quality gate" always runs before 'Twistlock Scan', so can't get the twistlock reports @devops
-                PULL_REQUEST: ['Build', 'Compile', 'Local Test', 'Scan', "ScanAtSource", 'Containerize', 'Twistlock Scan'/*, 'Quality Gate'*/,],
-                DEVELOPMENT : ['Build', 'Compile', 'Local Test', 'Scan', "ScanAtSource", 'Containerize', 'Container Test', 'Twistlock Scan'/*, 'Quality Gate'*/],
-                RELEASE     : ['Build', 'Compile', 'Local Test', 'Scan', "ScanAtSource", 'Containerize', 'Container Test', 'Twistlock Scan'/*, 'Quality Gate'*/], // todo RELEASE shouldn't pack/containerize, it should pick already packed.
-				YOLO		: ['Build', 'Compile', 'Containerize'],
+		/**
+		 * Replace with the shared configurations of your choice.
+		 * Your project inherits and merges all these shared configurations. Find each of them at:
+		 * https://github.com/nike-cop-pipeline/cop-pipeline-configuration/tree/c4c-ncp/resources
+		 */
+		profile: [
+				debug	: "true",	// prints complete final config in console during pipeline execution
+				build	: 'team/maui/c4c/ec2/build.groovy',
+				deploy	: 'team/maui/c4c/ec2/deploy.groovy',
+				tags	: 'team/maui/c4c/ec2/tags.groovy',
 		],
-        branchMatcher        : [
-                DEVELOPMENT: ['^(?!master$).*$'],
-				DEVELOPMENT: ['main']
-        ],
-        notify               : [
-                slack: [
-                        channel    : slackChannel,
-                        onCondition: ['Success', 'Failure', 'Unstable', 'Aborted']
-                ]
-        ],
-        tags                 : [
-                'owner:department' : 'marketing technology',
-                'owner:application': domainName + '-' + app,
-                'owner:domain'     : domainName,
-                'Name'             : domainName + '-' + app,
-                'email'            : 'Lst-GT.GC-MarTech@nike.com',
-                'costcenter'       : '161961',
-                'classification'   : 'Bronze',
-                'nike-department'  : 'marketing technology',
-                'nike-domain'      : domainName,
-                'nike-application' : domainName + '-' + app,
-        ],
-        build         : [
-			//artifactory.nike.com:9002/cafi/nike-debian-slim-java11-jdk-foundation:latest
-			//artifactory.nike.com:9001/max/gradle-with-git:latest
-			//artifactory.nike.com:9002/openjdk:11-jdk
-			//gradle:jdk11-focal
-                image    : 'gradle:jdk11-focal',
-                //args     : '-v $PWD:$PWD -w $PWD -v /var/run/docker.sock:/var/run/docker.sock --entrypoint="" --network="host"',
-                cmd      : './gradlew clean build --parallel --daemon --build-cache',
-                artifacts: ['build/libs/'],
-        		cache : [
-        		    tool: 'gradle',
-        		]
-        ],
-    	cache                : [
-    	    strategy : 'mountAsDockerVolume',
-    	    isolation: 'pipeline',
-    	    tool     : 'gradle'
-    	],
-		// TODO plz implement integrationTest @developers
-        localTest            : [
-                image    : 'gradle:jdk11-focal',
-                //args     : '-v $PWD:$PWD -w $PWD -v /var/run/docker.sock:/var/run/docker.sock --entrypoint="" --network="host"',
-                cmd      : './gradlew integrationTest',
-                archives : ['build/reports/'],
-        ],
-    	scanAtSource: [
-    	    	// we can submit static, secret, sca scan types.
-    	    	scanTypeTag: 'static',
-    	    	// Submit and move on, In future we will wait for results and run quality gate on them.
-    	    	waitForScanResults: false,
-    	    	// Enable this property when waitForScanResults turned to true
-    	    	//waitForScanResultsTimeout: 600,
-    	    	// For any error received while running the scan we won't fail the build. In future when we validate the result with Quality gate we can update the field to true.
-    	    	failOnError: false,
-    	    	// File where Scan results archived
-    	    	scanResultsFile: 'scanAtSourceScanResults.json',
-    	    	// Automation user credentials
-    	    	sdbPath: 'shared/notification/credentials',
-    	    	sdbKeys: [
-    	    	    userNameKey : 'gc-ncp-maui-pipelineuser',
-    	    	    userPasswordKey : 'gc-ncp-maui-pipelinepassword'
-    	    	],
-    	    	cerberusEnv: "china-v2",
-    	    	branch            : "${BRANCH_NAME}",
-    	    	name              : app,
-    	    	repository        : 'https://github.com/nike-gc-ncp/springboot-template.git',
-    	],
-        qma                  : [
-                configFile: 'quality-config.yaml',
-        ],
-    	pra : [
-    	    	cerberusEnv: "china-v2",
-    	    	sdbPath    : "shared/notification/credentials",
-    	    	userNameKey: "gc-ncp-maui-pipelineuser",
-    	    	passwordKey: "gc-ncp-maui-pipelinepassword"
-    	],
-        container            : [
-                name : app,
-                group: domainName,
-                dockerBuildArgs: '--pull',
-        ],
-		// TODO plz implement integrationTest @devops
-        containerTest        : [
-                //containerTest provides a genericBuild step that can be used to validate the container
-                cmd: 'echo \"my docker container tag is ${DOCKER_CONTAINER}\"',
-        ],
-        twistlock            : [
-				cerberusEnv			: "china-v2",
-                action              : 'scan',
-                twistlockScanTarget : domainName + '/' + app + ":${BRANCH_NAME}-${BUILD_ID}",
-                twistlockProjectName: twistlockProjectName,
-                twistlockProjectId  : twistlockProjectName,
-                twistlockSdb        : 'shared/notification/credentials',
-                reportDir           : 'build/reports/twistlock',
-                useQmaQualityGate   : true
-        ],
-        deploymentEnvironment: [
-                test: [
-                        deployFlow      : [
-                                DEVELOPMENT: ['Publish To ECR', 'Deploy'/*, "Referee Canary ECS"*/],
-								YOLO: ['Publish To ECR', 'Deploy'],
-                        ],
-                        cloudEnvironment: 'test',
-                        deploy          : [
-                                awsRole                            : 'gc-cds-jenkins',
-                                accountId                          : '128123422106',
-                                region                             : 'cn-northwest-1',
-                                //clusterName                        : domainName + '-cluster-' + app,
-								clusterName						   : 'max-test-ecs',
-                                stackName                          : stackName,
-								//TODO , setup a ECS cluster for Fargate type
-                                //launchType                         : 'FARGATE',
-								launchType                         : 'EC2',
-                                taskExecutionRoleArn               : 'arn:aws-cn:iam::128123422106:role/gc-ncp-memberunlock-ecs',
-                                serviceRoleName                    : 'gc-cds-jenkins',
-                                securityGroups                     : 'sg-0348ed18cf8a084e8,sg-0503834381f87a5a0',
-                                subnets                            : 'subnet-027c9fe56d97470bc,subnet-0854e4c8f8efcce76,subnet-028f7908115862d7a',
-                                vpcId                              : 'vpc-09e6999d1f4ed0b5b',
-                                taskCpu                            : 128,
-                                appContainerCpu                    : 128,
-                                taskMemory                         : 512,
-                                appContainerMemory                 : 512,
-                                healthCheckPath                    : '/healthcheck',
-                                containerPort                      : '8080',
-                                healthCheckPort                    : '8077',
-                                listenerArn                        : 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128123422106:listener/app/springboot-service-ALB/143db540a3e91914/ba3755944b00c7da',
-                                listenerRuleConditionField         : 'path-pattern',
-                                listenerRuleConditionValues        : '*',
-                                containerDesiredCount              : testRPSScaling.desiredCapacity,
-                                useMultibranchCompatibleServiceName: true,
-                                useSplunkTaskDriver                : true,
-                                splunkToken                        : splunkDetails["ecs-splunk-test-token"],
-                                splunkIndex                        : splunkDetails["ecs-splunk-test-index"],
-                                splunkUrl                          : splunkDetails["ecs-splunk-test-url"],
-                                splunkFormat                       : 'json',
-                                splunkApplicationName              : domainName + '-' + app,
-                                useJsonFileLogDriver               : 'json-file',
-                                includeRPSScalingPolicy            : true,
-                                rpsScaling                         : testRPSScaling
 
-                        ],
-                        tags            : [
-                                'nike-environment': 'test'
-                        ],
-                ],
-                //prod: [
-                //        deployFlow      : [
-                //                //RELEASE: ['Publish To ECR', 'Deploy', "Referee Canary ECS"]
-                //        ],
-                //        cloudEnvironment: 'prod',
-                //        referee         : canaryExecutionConfig,
-                //        deploy          : [
-                //                awsRole                            : 'productdata-sts-build-role',
-                //                accountId                          : '529363209591',
-                //                region                             : 'us-east-1',
-                //                clusterName                        : domainName + '-cluster-' + app,
-                //                stackName                          : stackName,
-                //                launchType                         : 'FARGATE',
-                //                taskExecutionRoleArn               : 'arn:aws:iam::529363209591:role/onencp-task-execution-role',
-                //                serviceRoleName                    : 'onencp-springboot',
-                //                // RDS SG: sg-044932183eb57d4d6
-                //                // Container App SG: sg-05e945c7ca2c6f8a8
-                //                securityGroups                     : 'sg-05e945c7ca2c6f8a8,sg-044932183eb57d4d6',
-                //                subnets                            : 'subnet-0be6a2cae542f3f58,subnet-06c93511a4dc70b9d,subnet-0aad6ddf1e29fab45',
-                //                vpcId                              : 'vpc-08bb022a1fac1af84',
-                //                taskCpu                            : 1024,
-                //                appContainerCpu                    : 1024,
-                //                taskMemory                         : 2048,
-                //                appContainerMemory                 : 2048,
-                //                healthCheckPath                    : '/health',
-                //                healthCheckPort                    : '8077',
-                //                containerPort                      : '8080',
-                //                listenerArn                        : 'arn:aws:elasticloadbalancing:us-east-1:529363209591:listener/app/productonencp-internal-alb/fccd1ee03ce6d5b5/27d4613fa0730bb4',
-                //                listenerRuleConditionField         : 'path-pattern',
-                //                listenerRuleConditionValues        : '/product_onencp/consumer_assortments/v1*',
-                //                containerDesiredCount              : prodRPSScaling.desiredCapacity,
-                //                useMultibranchCompatibleServiceName: true,
-                //                useSplunkTaskDriver                : true,
-                //                splunkToken                        : splunkDetails["ecs-splunk-prod-token"],
-                //                splunkIndex                        : splunkDetails["ecs-splunk-prod-index"],
-                //                splunkUrl                          : splunkDetails["ecs-splunk-prod-url"],
-                //                splunkApplicationName              : domainName + '-' + app,
-                //                includeRPSScalingPolicy            : true,
-                //                rpsScaling                         : prodRPSScaling
-//
-                //        ],
-                //        tags            : [
-                //                'nike-environment': 'prod'
-                //        ],
-                //],
-        ],
+		// Configurations beyond this line will override their counterparts inherited from above.
+
+		buildFlow: [
+				SFX_RESOURCES_UPDATE: ["SignalFXResources"],
+				PULL_REQUEST		: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "PRA Comment"], // PULL_REQUEST name should match and it is only mandatory Name in build flow.
+				TEST_DEPLOY			: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "AMI", "SignalFxTest"],
+				PERF_DEPLOY			: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "AMI", "AMI-Share", "SignalFxTest"],
+				PROD_DEPLOY			: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "AMI", "Smart Share", "SignalFxProd"],
+		],
+
+		branchMatcher: [
+				PULL_REQUEST	: ['^(?!master$).*$'],
+				PERF_DEPLOY		: ['^(?!master$).*$'],
+				TEST_DEPLOY		: ['master'],
+				PROD_DEPLOY		: ['master'],
+		],
+
+		// Useful for mitigating contention when trying to lock Gradle journal cache
+		// https://confluence.nike.com/display/GCENG/C4C+CDS+Migration+-+Lessons+Learned#C4CCDSMigrationLessonsLearned-Timeoutwaitingtolockjournalcache(/tmp/jenkins/workspace/S_V1_notificationsmsproc_develop/.gradle/caches/journal-1).ItiscurrentlyinusebyanotherGradleinstance.
+		cache: [
+				strategy	: 'mountAsDockerVolume',
+				isolation	: 'pipeline', // https://nikedigital.slack.com/archives/C037WGKUWRZ/p1649666711261889?thread_ts=1649665633.876249&cid=C037WGKUWRZ
+				tool		: 'gradle'
+		],
+
+		build: [
+				cmd: "./gradlew clean build --parallel --daemon --build-cache",
+		],
+
+		package: [
+				requires: ['nike-springboot-support', 'nike-signalfx-collectd', 'nike-use-openjdk-11']
+		],
+
+		deploymentEnvironment: [
+				test: [
+						deployOrder: 10, // optional, learn more at https://pipelines.auto.nikecloud.com/concepts/defining-deployment-order/#how-to-define-the-deployment-order
+						deploy: [
+								instanceType	: 'm5.large',
+								maxSize			: 1,
+								minSize			: 1,
+								desiredCapacity	: 1,
+						],
+						infrastructure: [
+								loadBalancer: [
+										loadBalancerTargetGroupArn	: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128123422106:targetgroup/springboottemplate-tg/fbfe3ca90e1ee57b',
+										listenerArn					: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128123422106:listener/app/springboottemplate-ALB/5451d7e91d7f8781/4af83b150b585ced'
+								]
+						],
+				],
+
+				prod: [
+						deployOrder: 30, // optional, learn more at https://pipelines.auto.nikecloud.com/concepts/defining-deployment-order/#how-to-define-the-deployment-order
+						deploy: [
+								instanceType	: 'm5.large',
+								maxSize			: 24,
+								minSize			: 1,
+								desiredCapacity	: 1,
+								// scaling configs below are encouraged but optional
+								// https://github.com/nike-cop-pipeline/cop-pipeline-step/blob/main/resources/com/nike/acid/pipeline/step/asgWithOptionalRouting.template.yaml
+								includeDefaultCPUScalingPolicy : true,
+								scaleUpCPUThreshold		: 50,
+								scaleDownCPUThreshold	: 20,
+								scaleUpAdjustment		: 9,
+								scaleDownAdjustment		: -3,
+						],
+						infrastructure: [
+								loadBalancer: [
+										loadBalancerTargetGroupArn	: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128277374507:targetgroup/springboottemplate-tg/fbfe3ca90e1ee57b',
+										listenerArn					: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128277374507:listener/app/springboottemplate-ALB/5451d7e91d7f8781/4af83b150b585ced'
+								]
+						]
+				],
+		],
 ]
 
-ecsDeployPipeline(config)
+def params = [
+		envVars: env,
+]
+
+node {
+	// use the build number as part of the deployment version number
+	def scmVars = checkout scm
+	String appName = readProperties(file: 'gradle.properties').artifactId
+	String version = readProperties(file: 'gradle.properties').version + "." + env.BUILD_ID
+	branchName = env.BRANCH_NAME
+
+	params.put("scmVars", scmVars)
+	params.put("appName", appName)
+	params.put("version", version)
+	params.put("teamName", "GC-MarTech")
+
+	config = mergeConfiguration(config, params)
+}
+
+ec2BlueGreenDeployPipeline(config)

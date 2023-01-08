@@ -1,115 +1,243 @@
 #!groovy
-@Library([
-	'cicd-pipeline',
-	'cop-pipeline-configuration@c4c-ncp_springboot_template_Yizhi',
-	'cop-pipeline-step'
-]) _ // Why is there a trailing underscore `_`? https://stackoverflow.com/a/48798886
+@Library(['cop-pipeline-bootstrap', 'cop-pipeline-step']) _
+loadPipelines('stable/v1.4.x', 'master')
 
-def config = [
-	/**
-	 * Replace with the shared configurations of your choice.
-	 * Your project inherits and merges all these shared configurations. Find each of them at:
-	 * https://github.com/nike-cop-pipeline/cop-pipeline-configuration/tree/c4c-ncp/resources
-	 */
-	profile: [
-		debug	: "true",	// prints complete final config in console during pipeline execution
-		build	: 'team/maui/c4c/ec2/build.groovy',
-		deploy	: 'team/maui/c4c/ec2/deploy.groovy',
-		tags	: 'team/maui/c4c/ec2/tags.groovy',
-	],
-	
-	// Configurations beyond this line will override their counterparts inherited from above.
-	
-	buildFlow: [
-		SFX_RESOURCES_UPDATE: ["SignalFXResources"],
-		PULL_REQUEST		: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "PRA Comment"], // PULL_REQUEST name should match and it is only mandatory Name in build flow.
-		TEST_DEPLOY			: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "AMI", "SignalFxTest"],
-		PERF_DEPLOY			: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "AMI", "AMI-Share", "SignalFxTest"],
-		PROD_DEPLOY			: ["Build", "Compile", "Extract Version", "Scan", "ScanAtSource", "Quality Gate", "AMI", "Smart Share", "SignalFxProd"],
-	],
 
-	branchMatcher: [
-		PULL_REQUEST	: ['^(?!master$).*$'],
-		PERF_DEPLOY		: ['^(?!master$).*$'],
-		TEST_DEPLOY		: ['master'],
-		PROD_DEPLOY		: ['master'],
-	],
+def cloudformationTemplatePath  = './cloudformation/ecs-service-deploy-template.yaml'
 
-	// Useful for mitigating contention when trying to lock Gradle journal cache
-	// https://confluence.nike.com/display/GCENG/C4C+CDS+Migration+-+Lessons+Learned#C4CCDSMigrationLessonsLearned-Timeoutwaitingtolockjournalcache(/tmp/jenkins/workspace/S_V1_notificationsmsproc_develop/.gradle/caches/journal-1).ItiscurrentlyinusebyanotherGradleinstance.
-	cache: [
-		strategy	: 'mountAsDockerVolume',
-		isolation	: 'pipeline', // https://nikedigital.slack.com/archives/C037WGKUWRZ/p1649666711261889?thread_ts=1649665633.876249&cid=C037WGKUWRZ
-		tool		: 'gradle'
-	],
 
-	build: [
-		cmd: "./gradlew clean build --parallel --daemon --build-cache",
-	],
 
-	package: [
-		requires: ['nike-springboot-support', 'nike-signalfx-collectd', 'nike-use-openjdk-11']
-	],
-
-	deploymentEnvironment: [
-		test: [
-			deployOrder: 10, // optional, learn more at https://pipelines.auto.nikecloud.com/concepts/defining-deployment-order/#how-to-define-the-deployment-order
-			deploy: [
-				instanceType	: 'm5.large',
-				maxSize			: 1,
-				minSize			: 1,
-				desiredCapacity	: 1,
-			],
-			infrastructure: [
-				loadBalancer: [
-					loadBalancerTargetGroupArn	: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128123422106:targetgroup/springboottemplate-tg/fbfe3ca90e1ee57b',
-					listenerArn					: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128123422106:listener/app/springboottemplate-ALB/5451d7e91d7f8781/4af83b150b585ced'
-				]
-			],
-		],
-
-		prod: [
-			deployOrder: 30, // optional, learn more at https://pipelines.auto.nikecloud.com/concepts/defining-deployment-order/#how-to-define-the-deployment-order
-			deploy: [
-				instanceType	: 'm5.large',
-				maxSize			: 24,
-				minSize			: 1,
-				desiredCapacity	: 1,
-				// scaling configs below are encouraged but optional
-				// https://github.com/nike-cop-pipeline/cop-pipeline-step/blob/main/resources/com/nike/acid/pipeline/step/asgWithOptionalRouting.template.yaml
-				includeDefaultCPUScalingPolicy : true,
-				scaleUpCPUThreshold		: 50,
-				scaleDownCPUThreshold	: 20,
-				scaleUpAdjustment		: 9,
-				scaleDownAdjustment		: -3,
-			],
-			infrastructure: [
-				loadBalancer: [
-					loadBalancerTargetGroupArn	: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128277374507:targetgroup/springboottemplate-tg/fbfe3ca90e1ee57b',
-					listenerArn					: 'arn:aws-cn:elasticloadbalancing:cn-northwest-1:128277374507:listener/app/springboottemplate-ALB/5451d7e91d7f8781/4af83b150b585ced'
-				]
-			]
-		],
-	],
+Map accountSettings = [
+    test: [
+        accountId        : '128123422106',
+        securityGroups   : 'sg-0acc524825338bd51',
+        privateSubnets   : 'subnet-0075a560decfbdc3f,subnet-066e0ec7e4787084e,subnet-02fbfc88a1e993db6',
+        vpcId            : 'vpc-083124926037',
+        awsRole          : 'gc-cds-jenkins',
+        awsRegion        : 'cn-northwest-1',
+        slackChannelName : '#gcncp-jenkins-auto-notifications',
+        bmxAgentLabel    : 'ec2-ondemand-agent-cn',
+        nikeTagGuid      : '8e339711-209e-4205-b792-02db90a2a934'
+    ]
 ]
 
-def params = [
-	envVars: env,
+def account     = accountSettings.test
+
+Map ecsServiceSettings = [
+    'ClusterName'              : 'onencp-test-cluster',
+    'AppContainerCpu'          : '1024',
+    'AppContainerMemory'       : '2048',
+    'TaskMemory'               : '2048',
+    'ContainerSecurityGroupId' : "${account.securityGroups}",
+    'ContainerSubnetId'        : "${account.privateSubnets}",
+    'ContainerPort'            : 8080,
+    'HealthCheckPort'          : 8080,
+    'ListenerRulePriority'     : 2,
+    'ContainerDesiredCount'    : 3,
+    'UseSplunkTaskDriver'      : 'true',
+    'ServiceRoleName'          : 'arn:aws-cn:iam::128123422106:role/gc-cds-jenkins',
+    'TaskExecutionRoleArn'     : 'arn:aws-cn:iam::128123422106:role/gc-ncp-memberunlock-ecs',
+    'Environment'              : 'test',
 ]
+
+def tags        = [
+    'classification'        : 'Bronze',
+    'costcenter'            : '161961',
+    'email'                 : 'gc-marketing@nike.com',
+    'nike_ca_qma_url'       : 'https://qma.auto.nikecloud.com/candidate/details/3c528dbe-98bb-452b-baca-5cad16f10a51',
+    'nike-application'      : 'onencp',
+    'nike-requestor'        : 'andrew.xiang@nike.com',
+    'owner'                 : 'danny.zhang',
+    'nike-department'       : 'gc marketing technology',
+    'nike-domain'           : 'consumer engagement',
+    'nike-distributionlist' : 'Lst-GT.GC-MarTech@nike.com',
+    'nike-owner'            : 'Danny.Zhang@nike.com',
+    'nike-tagguid'          : account.nikeTagGuid,
+]
+
+def pra         = [
+    cerberusEnv     : "china-v2",
+    sdbPath         : "shared/notification/credentials",
+    userNameKey     : "gc-ncp-maui-pipelineuser",
+    passwordKey     : "gc-ncp-maui-pipelinepassword",
+]
+
+def cloudRed    = [
+    tagGuid         : account.nikeTagGuid,
+    region          : account.awsRegion,
+    env             : 'prod',
+]
+
+
+Map splunk = [:]
+
+
+def buildFlow = [
+    PULL_REQUEST        : ['Run Tests', 'QMA', 'Post PRA Comment'],
+    DEPLOY_TO_TEST      : ['Build', 'Compile', 'Local Test', 'Containerize']
+]
+
+def deployFlow = [
+    DEPLOY_TO_TEST      : ['Deploy', 'Publish To ECR'],
+]
+
+def branchMatcher = [
+    DEPLOY_TO_TEST      : ['master'],
+]
+
+def qma = [
+    configFile  : './quality-config.yaml',
+]
+
+def notify = [
+    slack       : [
+        onCondition : ['Build Start', 'Failure', 'Success', 'Unstable'],
+        channel     : "${account.slackChannelName}",
+    ]
+]
+
+def cache = [
+    strategy    : 'mountAsDockerVolume',
+    isolation   : 'pipeline',
+    tool        : 'gradle',
+]
+
+def build = [
+    image       : 'gradle:jdk11-focal',
+    cmd         : './gradlew clean build --parallel --daemon --build-cache',
+    artifacts   : ['build/libs/'],
+    cache       : [
+        tool        : 'gradle',
+    ]
+]
+
+def localTest = [
+    image               : 'gradle:jdk11-focal',
+    cmd                 : './gradlew integrationTest',
+    archives            : ['build/reports/'],
+]
+
+def twistlock = [
+    cerberusEnv         : "china-v2",
+    action              : 'scan',
+    twistlockSdb        : 'shared/notification/credentials',
+    reportDir           : 'build/reports/twistlock',
+    useQmaQualityGate   : true,
+]
+
+
+def config;
 
 node {
-	// use the build number as part of the deployment version number
-	def scmVars = checkout scm
-	String appName = readProperties(file: 'gradle.properties').artifactId
-	String version = readProperties(file: 'gradle.properties').version + "." + env.BUILD_ID
-	branchName = env.BRANCH_NAME
-	
-	params.put("scmVars", scmVars)
-	params.put("appName", appName)
-	params.put("version", version)
-	params.put("teamName", "GC-MarTech")
-	
-	config = mergeConfiguration(config, params)
+    if (params.Flow == 'RELEASE') {
+        splunk = withCerberus.readSecrets(
+            env         : 'china-v2',
+            sdbPath     : 'shared/notification/credentials',
+        )
+    } else {
+        splunk = withCerberus.readSecrets(
+            env         : 'china-v2',
+            sdbPath     : 'shared/notification/credentials',
+        )
+    }
+
+    def props                   = readProperties file: './gradle.properties'
+
+    def artifactId              = props['artifactId']
+
+    def customBuildParameters = [
+        string(
+            name            : 'NIKE_REQUESTOR',
+            defaultValue    : 'andrew.xiang@nike.com',
+            description     : 'AWS Resource Requstor',
+        ),
+        string(
+            name            : 'ONENCP_SERVICE',
+            defaultValue    : "${artifactId}",
+            description     : 'AWS Resource Requstor',
+        )
+
+    ]
+
+    def serviceName             = artifactId
+
+    def elbStackName            = "onencp-${serviceName}-ELB"
+    def stackName               = "onencp-${serviceName}-TASK"
+    def teamName                = "onencp"
+    def serviceLable            = "onencp-${serviceName}"
+    def twistlockProjectName    = "${serviceLable}"
+    def imageName               = "${teamName}/${serviceName}"
+    def imageFullName           = "${imageName}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+    def loadBalancerRLable      = "app/onencp-internal-${serviceName}-alb/afb09e97b71572bf"
+    String imageTag             = (params.IMAGE_TAG == ''
+                                   ?
+                                   ("${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+                                    .replace("/", "-")
+                                    .replace("_", "-"))
+                                   :
+                                   "${params.IMAGE_TAG}")
+
+    def container = [
+        name                : "${serviceName}",
+        group               : "${teamName}",
+        imageName           : "${imageName}",
+    ]
+
+
+    config = [
+        customBuildParameters: customBuildParameters,
+        usePraDispatch       : false,
+        buildFlow            : buildFlow,
+        branchMatcher        : branchMatcher,
+        qma                  : qma,
+        pra                  : pra,
+        notify               : notify,
+        cache                : cache,
+        build                : build,
+        localTest            : localTest,
+        container            : container,
+        tags                 : [
+            'Name'              : "${serviceLable}",
+            'nike-requestor'    : params.CUSTOM_NIKE_REQUESTOR,
+        ] + tags,
+        twistlock            : [
+            twistlockScanTarget : "${teamName}/${serviceName}:${BRANCH_NAME}-${BUILD_ID}",
+            twistlockProjectName: "${twistlockProjectName}",
+            twistlockProjectId  : "${twistlockProjectName}",
+        ] + twistlock,
+        deploymentEnvironment: [
+            test : [
+                deployFlow      : deployFlow,
+                cloudEnvironment: "test",
+                deploy          : [
+                    cloudFormationTemplate      : cloudformationTemplatePath,
+                    parameters                  : [
+                        'SplunkToken'                   : "${splunk['ecs-splunk-test-token']}",
+                        'SplunkIndex'                   : "${splunk['ecs-splunk-test-index']}",
+                        'SplunkUrl'                     : "${splunk['ecs-splunk-test-url']}",
+                        'SplunkApplicationName'         : "${serviceLable}",
+                        'SplunkApplicationName'         : "${serviceLable}",
+                        'ContainerDeployTag'            : "${imageTag}",
+                        'ApplicationGroup'              : "${teamName}",
+                        'ContainerName'                 : "${serviceName}",
+                        'Domain'                        : "${teamName}",
+                        'ServiceName'                   : "${serviceName}",
+                        'ElbStackName'                  : "${elbStackName}",
+                        'LoadBalancerResourceLabel'     : "${loadBalancerRLable}",
+                    ] + ecsServiceSettings,
+                    awsRole                             : "${account.awsRole}",
+                    accountId                           : "${account.accountId}",
+                    stackName                           : "${stackName}",
+                    region                              : "${account.awsRegion}",
+                    pollInterval                        : 15000,
+                    useMultibranchCompatibleServiceName : true,
+                ],
+                tags                            : [
+                    'nike-environment'                  : 'test',
+                ],
+            ],
+        ],
+    ]
 }
 
-ec2BlueGreenDeployPipeline(config)
+ecsDeployPipeline(config)

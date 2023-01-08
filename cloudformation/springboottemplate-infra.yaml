@@ -18,7 +18,7 @@ Parameters:
     Type: String
   CertificateARN:
     Type: String
-  
+
 Conditions:
   CreatePerfResources: !Equals [!Ref Environment, perf]
   IfNotProduction: !Not [ !Equals [!Ref Environment, prod] ]
@@ -41,7 +41,7 @@ Resources:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
       Path: /
-      Roles: 
+      Roles:
         - !Ref Role
       InstanceProfileName: !Sub ${ApplicationName}_${Environment}_instanceprofile
 
@@ -116,14 +116,14 @@ Resources:
       ResourceRecords:
         - !GetAtt ALB.DNSName
 
-  PrivateRoute53ALB: 
+  PrivateRoute53ALB:
     Type: AWS::Route53::HostedZone
-    Properties: 
+    Properties:
       Name: !Sub
         - ${ALBIdentifier}.${DomainName}
         - {DomainName: !Ref DomainName}
       VPCs:
-        - 
+        -
           VPCId: !Ref VPC
           VPCRegion: !Sub ${AWS::Region}
 
@@ -136,8 +136,8 @@ Resources:
         - {DomainName: !Ref DomainName}
       AliasTarget:
         DNSName: !Sub
-        - dualstack.${ALBDNS}
-        - {ALBDNS: !GetAtt ALB.DNSName}
+          - dualstack.${ALBDNS}
+          - {ALBDNS: !GetAtt ALB.DNSName}
         HostedZoneId: !GetAtt ALB.CanonicalHostedZoneID
       Type: A
 

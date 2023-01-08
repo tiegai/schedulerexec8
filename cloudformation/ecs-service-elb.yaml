@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  ServiceName:
+    Type        : String
+    Default     : 'ping'
+
+  TeamName:
+    Type        : String
+    Default     : 'onencp'
+
+  HealthCheckPort:
+    Type        : String
+    Default     : '8080'
+
+Mappings:
+  '128123422106':
+    'cn-northwest-1':
+      vpcId: 'vpc-082778d4f24191273'
+      subnetIds:
+        - 'subnet-0075a560decfbdc3f'
+        - 'subnet-066e0ec7e4787084e'
+        - 'subnet-02fbfc88a1e993db6'
+      securityGroups:
+        - 'sg-0744291cc4ef6fcd4'
+      certificateArn: 'arn:aws-cn:acm:cn-northwest-1:128123422106:certificate/af55c7cb-9771-4f79-8774-6acce2c5a364'
+      hostedZoneId: 'Z05731261WLWINTSQY8EL'
+      domainName: 'onencp-test.gcncp.nikecloud.com.cn'
+
+Resources:
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${TeamName}/${ServiceName}"
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Name: !Sub "${TeamName}-${ServiceName}-alb"
+      Scheme: internal
+      SecurityGroups: !FindInMap [ !Ref 'AWS::AccountId', !Ref 'AWS::Region', 'securityGroups' ]
+      Subnets: !FindInMap [ !Ref 'AWS::AccountId', !Ref 'AWS::Region', 'subnetIds' ]
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Port: 443
+      Protocol: HTTPS
+      LoadBalancerArn: !Ref LoadBalancer
+      Certificates:
+        - CertificateArn: !FindInMap [ !Ref 'AWS::AccountId', !Ref 'AWS::Region', 'certificateArn' ]
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ServiceTargetGroup
+
+  RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Type: CNAME
+      HostedZoneId: !FindInMap [ !Ref 'AWS::AccountId', !Ref 'AWS::Region', 'hostedZoneId' ]
+      Name: !Join ['.', [!Ref ServiceName, !FindInMap [ !Ref 'AWS::AccountId', !Ref 'AWS::Region', 'domainName' ]]]
+      TTL: 300
+      ResourceRecords:
+        - !GetAtt LoadBalancer.DNSName
+
+  ServiceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'TG']]
+      VpcId: !FindInMap [ !Ref 'AWS::AccountId', !Ref 'AWS::Region', 'vpcId' ]
+      Port: 8080
+      Protocol: HTTP
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: '/healthcheck'
+      HealthCheckPort: !Ref HealthCheckPort
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 10
+      TargetType: ip
+      Matcher:
+        HttpCode: 200-299
+
+Outputs:
+  ServiceTargetGroup:
+    Value: !Ref ServiceTargetGroup
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ServiceTargetGroup' ] ]
+  LoadBalancer:
+    Value: !Ref LoadBalancer
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'LoadBalancer' ] ]
+  LoadBalancerListener:
+    Value: !Ref LoadBalancerListener
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'LoadBalancerListener' ] ]

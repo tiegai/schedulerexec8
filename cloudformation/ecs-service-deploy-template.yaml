@@ -1,0 +1,539 @@
+# Description
+# -----------
+#
+# Template to create necessary infrastructure for an ECS service. This would correspond
+# to a single microservice that runs or depends on a separate sidecar container.
+# Multiple containers should run in one task definition
+#
+# Resources
+# ---------
+# * ECR Repository for Images
+# * ECS Service
+# * Task definition for the container
+#
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  ClusterName:
+    Type: String
+    Description: Name of the ECS cluster
+    AllowedPattern: "[a-zA-Z0-9_-]+"
+    MaxLength: 255
+    MinLength: 1
+    ConstraintDescription: Must be 1-255 characters and match pattern [a-zA-Z0-9_-]+
+    Default: 'onencp-test-cluster'
+
+  ServiceName:
+    Type: String
+    Description: Name of the service
+    AllowedPattern: "[a-z0-9]+(?:[_-][a-z0-9]+)*"
+    ConstraintDescription: Must be 1-255 characters and match pattern [a-z0-9]+(?:[_-][a-z0-9]+)*
+    MaxLength: 255
+    MinLength: 1
+
+  Domain:
+    Type: String
+    Description: Domain name
+    AllowedPattern: '[a-zA-Z0-9_-]+'
+    MaxLength: 255
+    MinLength: 1
+    ConstraintDescription: Must be 1-255 characters and match pattern [a-zA-Z0-9_-]+
+    Default: 'onencp'
+
+  ApplicationGroup:
+    Type: String
+    Description: Application Group Name
+    AllowedPattern: "[a-zA-Z0-9_-]+"
+    MaxLength: 255
+    MinLength: 1
+    ConstraintDescription: Must be 1-255 characters and match pattern [a-zA-Z0-9_-]+
+    Default: 'onencp'
+
+  TaskCpu:
+    Type: Number
+    Description: Container CPU Value
+    Default: 1024
+
+  TaskMemory:
+    Type: Number
+    Description: Container Memory Value (MB)
+    Default: 2048
+
+  ContainerDeployTag:
+    Type: String
+    Description: Tag of the image to deploy
+    Default: 'SNAPT'
+
+  ContainerName:
+    Type: String
+    Description: Name of the container image to deploy
+
+  ContainerDesiredCount:
+    Type: Number
+    Description: Number of container instances to run
+    Default: '3'
+
+  ContainerPort:
+    Type: Number
+    Default: 8081
+
+  AppContainerCpu:
+    Description: Soft limit on how much CPU to dedicate to application container. This CPU is shared from the total available Task CPU.
+    Type: Number
+    Default: 1024
+
+  AppContainerMemory:
+    Description: Soft limit on how much Memory to dedicate to the splunk sidecar. This memory is shared from the total available Task Memory
+    Type: Number
+    Default: 2048
+
+  Environment:
+    Type: String
+    Description: "Environment type (test or prod)"
+
+  ContainerSubnetId:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select at two subnets in your selected VPC for the container
+
+  ContainerSecurityGroupId:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: Select a list of Security Groups to add to the cluster
+
+  VpcId:
+    Type: String
+    Default: 'vpc-082778d4f24191273'
+
+  DeregistrationDelaySeconds:
+    Type: String
+    Default: '10'
+
+  TaskExecutionRoleArn:
+    Type: String
+    Description: IAM Role assigned to the container task
+    Default: 'arn:aws-cn:iam::128123422106:role/onencp-test-TaskExecutionRole'
+
+  LaunchType:
+    Type: String
+    Default: "FARGATE"
+    Description: Cluster launch type - FARGATE or EC2
+
+  ServiceRoleName:
+    Type: String
+    Default: 'NOVALUE' # workaround because pre processing is broken
+
+  TaskRoleArn:
+    Type: String
+    Default: ''
+
+  HealthCheckPath:
+    Type: String
+    Default: '/healthcheck'
+
+  HealthCheckPort:
+    Type: Number
+    Default: '8080'
+
+  AssignPublicIpToTask:
+    Type: String
+    Default: 'false'
+
+  ListenerRulePriority:
+    Type: Number
+    Default: 2
+
+  TargetGroupName:
+    Type: String
+    Default: '' # Used if TargetGroupArn is undefined
+
+  ListenerRuleConditionField:
+    Type: String
+    Default: 'path-pattern'
+
+  ListenerRuleConditionValues:
+    Type: CommaDelimitedList
+    Default: "/*"
+
+  UseSplunkTaskDriver:
+    Type: String
+    Default: 'false'
+
+  SplunkToken:
+    Type: String
+    Default: 'xxxxx'
+
+  SplunkIndex:
+    Type: String
+    Default: 'test_7d'
+
+  SplunkUrl:
+    Type: String
+    Default: 'https://http-inputs-nike.splunkcloud.com:443'
+
+  SplunkApplicationName:
+    Type: String
+
+  SplunkFormat:
+    Type: String
+    Default: 'inline'
+
+  UseJsonFileLogDriver:
+    Type: String
+    Default: 'false'
+
+  JsonFileMaxSize:
+    Type: String
+    Default: '10m'
+
+  JsonFileMaxFile:
+    Type: String
+    Default: '5'
+
+  AlbTargetGroupArn:
+    Type: String
+    Default: 'NOVALUE'
+
+  ServiceCapacity:
+    Description: The maximum and minimum value for ECS task to scale up and down to.
+    Type: String
+    Default: "1,5"
+
+  SqsScalingPolicyQueueName:
+    Description: Queue Name use for autoscaling policy
+    Type: String
+    Default: ""
+
+  SqsScalingPolicyScaleUpProperties:
+    Description: Scale up stat of statistic, period, evaluationPeriods, threshold, cooldown, scalingAdjustment
+    Type: String
+    Default: "Sum,60,2,500,300,1"
+
+  SqsScalingPolicyScaleDownProperties:
+    Description: Scale down stat of statistic, period, evaluationPeriods, threshold, cooldown, scalingAdjustment
+    Type: String
+    Default: "Sum,60,3,50,300,-1"
+
+  RPSScalingScaleInCooldown:
+    Description: Value of ScaleInCooldown
+    Type: Number
+    Default: 300
+
+  RPSScalingScaleOutCooldown:
+    Description: Value of ScaleOutCooldown
+    Type: Number
+    Default: 10
+
+  RPSAutoScalingTargetValue:
+    Description: Value for TargetTracking scaling target value.
+    Type: Number
+    Default: 75
+
+  IncludeDefaultRpsScalingPolicy:
+    Type: String
+    AllowedValues:
+      - "true"
+      - "false"
+    Default: "false"
+
+  LoadBalancerResourceLabel:
+    Description: Identifies the Load balancer associated with the ALBRequestCountPerTarget metric type.
+    Type: String
+
+  # Tags
+  Costcenter:
+    Default: '161961'
+    Type: String
+
+  Classification:
+    Default: 'Bronze'
+    Type: String
+
+  Email:
+    Default: 'Lst-nike.team.engineering@nike.com'
+    Type: String
+
+  Owner:
+    Type: String
+    Default: 'onencp'
+
+  NikeDepartment:
+    Type: String
+    Default: 'marketing technology'
+
+  NikeDomain:
+    Default: 'consumer engagement'
+    Type: String
+
+  NikeApplication:
+    Type: String
+    Default: 'onencp'
+
+  ElbStackName:
+    Type: String
+
+
+Conditions:
+  IsFargate: !Equals [!Ref LaunchType, FARGATE]
+  HasServiceRole: !Not [!Equals [!Ref ServiceRoleName, "NOVALUE"] ]
+  NoTargetGroupArn: !Equals [!Ref AlbTargetGroupArn, "NOVALUE"]
+  AssignPublicIp: !Equals [!Ref AssignPublicIpToTask, 'true']
+  SplunkTaskDriver: !Equals [!Ref UseSplunkTaskDriver, 'true']
+  JsonFileLogDriver: !Equals [!Ref UseJsonFileLogDriver, 'true']
+  IsChina: !Or [!Equals [!Ref "AWS::Region", "cn-north-1"], !Equals [!Ref "AWS::Region", "cn-northwest-1"]]
+  HasHealthCheckPort: !Not [!Equals [!Ref HealthCheckPort, "NOVALUE"] ]
+  UseSqsScalingPolicy: !Not [ !Equals [ "", !Ref SqsScalingPolicyQueueName ] ]
+  EnableRPSAutoScaling: !Equals [ "true", !Ref IncludeDefaultRpsScalingPolicy ]
+
+Resources:
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${ServiceName}"
+      Cluster: !Ref ClusterName
+      DesiredCount: !Ref ContainerDesiredCount
+      TaskDefinition: !Ref TaskDefinition
+      LaunchType: !Ref LaunchType
+      HealthCheckGracePeriodSeconds: 100
+      LoadBalancers:
+        - ContainerName: !Sub "${ApplicationGroup}-${ServiceName}"
+          ContainerPort: !Ref ContainerPort
+          TargetGroupArn:
+            Fn::ImportValue:
+              !Join [ ':', [ !Ref 'ElbStackName', 'ServiceTargetGroup' ] ]
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups: !Ref ContainerSecurityGroupId
+          Subnets: !Ref ContainerSubnetId
+          AssignPublicIp: !If [AssignPublicIp, ENABLED, DISABLED]
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      RequiresCompatibilities: !If [IsFargate, ["FARGATE"], []]
+      NetworkMode: 'awsvpc'
+      Family: !Sub '${Domain}-${ServiceName}-${Environment}'
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      ExecutionRoleArn: !Ref TaskExecutionRoleArn
+      TaskRoleArn: !If [HasServiceRole, !Ref ServiceRoleName, !Ref AWS::NoValue]
+      ContainerDefinitions:
+        - Name: !Sub "${ApplicationGroup}-${ServiceName}"
+          Essential: true
+          Image: !If [IsChina, !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com.cn/${Domain}/${ContainerName}:${ContainerDeployTag}", !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Domain}/${ServiceName}:${ContainerDeployTag}"]
+          Cpu: !Ref AppContainerCpu
+          Memory: !Ref AppContainerMemory
+          LogConfiguration:
+            !If
+            - JsonFileLogDriver
+            -
+              LogDriver: json-file
+              Options:
+                max-file: !Ref JsonFileMaxFile
+                max-size: !Ref JsonFileMaxSize
+            -
+              !If
+              - SplunkTaskDriver
+              -
+                LogDriver: splunk
+                Options:
+                  splunk-token: !Ref SplunkToken
+                  splunk-url: !Ref SplunkUrl
+                  splunk-insecureskipverify: "true"
+                  splunk-index: !Ref SplunkIndex
+                  splunk-source: "docker_driver"
+                  splunk-sourcetype: !Ref SplunkApplicationName
+                  splunk-format: !Ref SplunkFormat
+                  tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+              -
+                LogDriver: awslogs
+                Options:
+                  awslogs-group: !Sub "${ApplicationGroup}/${AWS::StackName}"
+                  awslogs-region: !Ref "AWS::Region"
+                  awslogs-stream-prefix: !Ref "AWS::StackName"
+          Environment:
+            - Name: env
+              Value: !Ref Environment
+            - Name: CLOUD_ENVIRONMENT
+              Value: !Ref Environment
+            - Name: EC2_REGION
+              Value: !Sub "${AWS::Region}"
+            - Name: AWS_REGION
+              Value: !Sub "${AWS::Region}"
+            - Name: server_group
+              Value: !Sub "${AWS::StackName}"
+            - Name: server_region
+              Value: !Sub "${AWS::Region}"
+            - Name: AWS_ACCOUNT_ID
+              Value: !Sub "${AWS::AccountId}"
+            - Name: app
+              Value: !Ref ServiceName
+            - Name: app_group
+              Value: !Ref ApplicationGroup
+            - Name: HOST_IS_EC2
+              Value: 'false'
+            - Name: AAA_S3_KEY_BUCKET
+              Value: 'internal.plus.nikecloud.com'
+          PortMappings:
+            - ContainerPort: !Ref ContainerPort
+
+  RealServiceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Port: !Ref ContainerPort
+      Protocol: HTTP
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: !Ref HealthCheckPath
+      HealthCheckPort: !If [HasHealthCheckPort, !Ref HealthCheckPort, !Ref AWS::NoValue]
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: !Ref DeregistrationDelaySeconds
+      TargetType: ip
+      Matcher:
+        HttpCode: 200-299
+
+  ServiceListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [ ':', [ !Ref 'ElbStackName', 'LoadBalancerListener' ] ]
+      Priority: !Ref ListenerRulePriority
+      Conditions:
+        - Field: !Ref ListenerRuleConditionField
+          Values: !Ref ListenerRuleConditionValues
+      Actions:
+        - TargetGroupArn:
+            Fn::ImportValue:
+              !Join [ ':', [ !Ref 'ElbStackName', 'ServiceTargetGroup' ] ]
+          Type: forward
+
+  TaskLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "${ApplicationGroup}/${AWS::StackName}"
+      RetentionInDays: 1
+
+  ServiceScalableTarget:
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Condition: UseSqsScalingPolicy
+    Properties:
+      MinCapacity: !Select [0, !Split [",", !Ref ServiceCapacity]]
+      MaxCapacity: !Select [1, !Split [",", !Ref ServiceCapacity]]
+      ResourceId: !Join
+        - /
+        - - service
+          - !Ref ClusterName
+          - !GetAtt Service.Name
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  RPSServiceScalableTarget:
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Condition: EnableRPSAutoScaling
+    Properties:
+      MinCapacity: !Select [0, !Split [",", !Ref ServiceCapacity]]
+      MaxCapacity: !Select [1, !Split [",", !Ref ServiceCapacity]]
+      ResourceId: !Join
+        - /
+        - - service
+          - !Ref ClusterName
+          - !GetAtt Service.Name
+      RoleARN: !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService'
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  SQSScaleUpPolicy:
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Condition: UseSqsScalingPolicy
+    Properties:
+      PolicyName: SQSScaleUpPolicy
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ServiceScalableTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: !Select [4, !Split [",", !Ref SqsScalingPolicyScaleUpProperties]]
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            ScalingAdjustment: !Select [5, !Split [",", !Ref SqsScalingPolicyScaleUpProperties]]
+
+  SQSScaleDownPolicy:
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Condition: UseSqsScalingPolicy
+    Properties:
+      PolicyName: SQSScaleDownPolicy
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ServiceScalableTarget
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: !Select [4, !Split [",", !Ref SqsScalingPolicyScaleDownProperties]]
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            ScalingAdjustment: !Select [5, !Split [",", !Ref SqsScalingPolicyScaleDownProperties]]
+
+  SQSScaleUpAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseSqsScalingPolicy
+    Properties:
+      AlarmName: !Sub '${ServiceName}-task-sqs-depth'
+      AlarmDescription: Alarm on depth of queue above threshold
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref SqsScalingPolicyQueueName
+      Statistic: !Select [0, !Split [",", !Ref SqsScalingPolicyScaleUpProperties]]
+      Period: !Select [1, !Split [",", !Ref SqsScalingPolicyScaleUpProperties]]
+      EvaluationPeriods: !Select [2, !Split [",", !Ref SqsScalingPolicyScaleUpProperties]]
+      Threshold: !Select [3, !Split [",", !Ref SqsScalingPolicyScaleUpProperties]]
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SQSScaleUpPolicy
+
+  SQSScaleDownAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseSqsScalingPolicy
+    Properties:
+      AlarmName: !Sub '${ServiceName}-task-sqs-empty'
+      AlarmDescription: Alarm on empty receive of a given queue
+      Namespace: AWS/SQS
+      MetricName: NumberOfEmptyReceives
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref SqsScalingPolicyQueueName
+      Statistic: !Select [0, !Split [",", !Ref SqsScalingPolicyScaleDownProperties]]
+      Period: !Select [1, !Split [",", !Ref SqsScalingPolicyScaleDownProperties]]
+      EvaluationPeriods: !Select [2, !Split [",", !Ref SqsScalingPolicyScaleDownProperties]]
+      Threshold: !Select [3, !Split [",", !Ref SqsScalingPolicyScaleDownProperties]]
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SQSScaleDownPolicy
+
+  RPSAutoScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Condition: EnableRPSAutoScaling
+    Properties:
+      PolicyName: RPSAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref RPSServiceScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ALBRequestCountPerTarget
+          ResourceLabel: !Join
+            - /
+            - - !Ref LoadBalancerResourceLabel
+              - !Select [5, !Split [":", !If [NoTargetGroupArn, !Ref RealServiceTargetGroup, !Ref AlbTargetGroupArn]]]
+        ScaleInCooldown: !Ref RPSScalingScaleInCooldown
+        ScaleOutCooldown: !Ref RPSScalingScaleOutCooldown
+        TargetValue: !Ref RPSAutoScalingTargetValue
+
+
+Outputs:
+  EcsService:
+    Description: ARN of the deployed ECS Service
+    Value: !Ref Service
+
