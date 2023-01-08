@@ -1,5 +1,5 @@
-package com.nike.ncp.scheduler.common.handler.annotation;//package com.xxl.job.core.handler.annotation;
-//
+package com.nike.ncp.scheduler.common.handler.annotation;
+//package com.xxl.job.core.handler.annotation;
 //import java.lang.annotation.ElementType;
 //import java.lang.annotation.Inherited;
 //import java.lang.annotation.Retention;

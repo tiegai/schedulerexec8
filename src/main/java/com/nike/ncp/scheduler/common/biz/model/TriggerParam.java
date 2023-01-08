@@ -2,7 +2,7 @@ package com.nike.ncp.scheduler.common.biz.model;
 
 import java.io.Serializable;
 
-public class TriggerParam implements Serializable{
+public class TriggerParam implements Serializable {
     private static final long serialVersionUID = 42L;
 
     private int jobId;
@@ -122,20 +122,7 @@ public class TriggerParam implements Serializable{
 
     @Override
     public String toString() {
-        return "TriggerParam{" +
-                "jobId=" + jobId +
-                ", executorHandler='" + executorHandler + '\'' +
-                ", executorParams='" + executorParams + '\'' +
-                ", executorBlockStrategy='" + executorBlockStrategy + '\'' +
-                ", executorTimeout=" + executorTimeout +
-                ", logId=" + logId +
-                ", logDateTime=" + logDateTime +
-                ", glueType='" + glueType + '\'' +
-                ", glueSource='" + glueSource + '\'' +
-                ", glueUpdatetime=" + glueUpdatetime +
-                ", broadcastIndex=" + broadcastIndex +
-                ", broadcastTotal=" + broadcastTotal +
-                '}';
+        return "TriggerParam{" + "jobId=" + jobId + ", executorHandler='" + executorHandler + '\'' + ", executorParams='" + executorParams + '\'' + ", executorBlockStrategy='" + executorBlockStrategy + '\'' + ", executorTimeout=" + executorTimeout + ", logId=" + logId + ", logDateTime=" + logDateTime + ", glueType='" + glueType + '\'' + ", glueSource='" + glueSource + '\'' + ", glueUpdatetime=" + glueUpdatetime + ", broadcastIndex=" + broadcastIndex + ", broadcastTotal=" + broadcastTotal + '}';
     }
 
 }

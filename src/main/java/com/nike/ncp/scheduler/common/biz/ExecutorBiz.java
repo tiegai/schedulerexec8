@@ -1,7 +1,11 @@
 package com.nike.ncp.scheduler.common.biz;
 
-import com.nike.ncp.scheduler.common.biz.model.*;
-
+import com.nike.ncp.scheduler.common.biz.model.IdleBeatParam;
+import com.nike.ncp.scheduler.common.biz.model.KillParam;
+import com.nike.ncp.scheduler.common.biz.model.ReturnT;
+import com.nike.ncp.scheduler.common.biz.model.TriggerParam;
+import com.nike.ncp.scheduler.common.biz.model.LogResult;
+import com.nike.ncp.scheduler.common.biz.model.LogParam;
 
 public interface ExecutorBiz {
 
@@ -9,7 +13,7 @@ public interface ExecutorBiz {
      * beat
      * @return
      */
-    public ReturnT<String> beat();
+    ReturnT<String> beat();
 
     /**
      * idle beat
@@ -17,27 +21,27 @@ public interface ExecutorBiz {
      * @param idleBeatParam
      * @return
      */
-    public ReturnT<String> idleBeat(IdleBeatParam idleBeatParam);
+    ReturnT<String> idleBeat(IdleBeatParam idleBeatParam);
 
     /**
      * run
      * @param triggerParam
      * @return
      */
-    public ReturnT<String> run(TriggerParam triggerParam);
+    ReturnT<String> run(TriggerParam triggerParam);
 
     /**
      * kill
      * @param killParam
      * @return
      */
-    public ReturnT<String> kill(KillParam killParam);
+    ReturnT<String> kill(KillParam killParam);
 
     /**
      * log
      * @param logParam
      * @return
      */
-    public ReturnT<LogResult> log(LogParam logParam);
+    ReturnT<LogResult> log(LogParam logParam);
 
 }

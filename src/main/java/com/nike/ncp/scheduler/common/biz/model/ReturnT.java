@@ -16,7 +16,7 @@ public class ReturnT<T> implements Serializable {
 	private String msg;
 	private T content;
 
-	public ReturnT(){}
+	public ReturnT() { }
 	public ReturnT(int code, String msg) {
 		this.code = code;
 		this.msg = msg;
@@ -25,7 +25,6 @@ public class ReturnT<T> implements Serializable {
 		this.code = SUCCESS_CODE;
 		this.content = content;
 	}
-	
 	public int getCode() {
 		return code;
 	}

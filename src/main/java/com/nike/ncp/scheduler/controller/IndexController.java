@@ -1,5 +1,5 @@
-package com.nike.ncp.scheduler.controller;//package com.xxl.job.executor.mvc.controller;
-//
+package com.nike.ncp.scheduler.controller;
+//package com.xxl.job.executor.mvc.controller;
 //import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 //import org.springframework.stereotype.Controller;
 //import org.springframework.web.bind.annotation.RequestMapping;

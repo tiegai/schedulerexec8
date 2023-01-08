@@ -34,8 +34,8 @@ public class ScriptUtil {
             fileOutputStream.close();
         } catch (Exception e) {
             throw e;
-        }finally{
-            if(fileOutputStream != null){
+        } finally {
+            if (fileOutputStream != null) {
                 fileOutputStream.close();
             }
         }
@@ -64,7 +64,7 @@ public class ScriptUtil {
             List<String> cmdarray = new ArrayList<>();
             cmdarray.add(command);
             cmdarray.add(scriptFile);
-            if (params!=null && params.length>0) {
+            if (params != null && params.length > 0) {
                 for (String param:params) {
                     cmdarray.add(param);
                 }
@@ -171,14 +171,6 @@ public class ScriptUtil {
      * 缺点：
      *      标准输出和错误输出优先级固定，可能和脚本中顺序不一致
      *      Java无法实时获取
-     *
-     *      <!-- commons-exec -->
-     * 		<dependency>
-     * 			<groupId>org.apache.commons</groupId>
-     * 			<artifactId>commons-exec</artifactId>
-     * 			<version>${commons-exec.version}</version>
-     * 		</dependency>
-     *
      * @param command
      * @param scriptFile
      * @param logFile

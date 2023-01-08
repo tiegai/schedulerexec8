@@ -1,5 +1,5 @@
-package com.nike.ncp.scheduler.common.util;//package com.xxl.job.core.util;
-//
+package com.nike.ncp.scheduler.common.util;
+//package com.xxl.job.core.util;
 ///**
 // * sharding vo
 // */

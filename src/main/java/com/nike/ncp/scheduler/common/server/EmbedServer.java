@@ -1,7 +1,11 @@
 package com.nike.ncp.scheduler.common.server;
 
 import com.nike.ncp.scheduler.common.biz.impl.ExecutorBizImpl;
-import com.nike.ncp.scheduler.common.biz.model.*;
+import com.nike.ncp.scheduler.common.biz.model.LogParam;
+import com.nike.ncp.scheduler.common.biz.model.IdleBeatParam;
+import com.nike.ncp.scheduler.common.biz.model.KillParam;
+import com.nike.ncp.scheduler.common.biz.model.ReturnT;
+import com.nike.ncp.scheduler.common.biz.model.TriggerParam;
 import com.nike.ncp.scheduler.common.thread.ExecutorRegistryThread;
 import com.nike.ncp.scheduler.common.util.ThrowableUtil;
 import com.nike.ncp.scheduler.common.util.XxlJobRemotingUtil;
@@ -9,21 +13,40 @@ import com.nike.ncp.scheduler.common.biz.ExecutorBiz;
 import com.nike.ncp.scheduler.common.util.GsonTool;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionHandler;
 
-import java.util.concurrent.*;
 
 public class EmbedServer {
-    private static final Logger logger = LoggerFactory.getLogger(EmbedServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmbedServer.class);
 
     private ExecutorBiz executorBiz;
     private Thread thread;
@@ -74,7 +97,7 @@ public class EmbedServer {
                     // bind
                     ChannelFuture future = bootstrap.bind(port).sync();
 
-                    logger.info(">>>>>>>>>>> xxl-job remoting server start success, nettype = {}, port = {}", EmbedServer.class, port);
+                    LOGGER.info(">>>>>>>>>>> xxl-job remoting server start success, nettype = {}, port = {}", EmbedServer.class, port);
 
                     // start registry
                     startRegistry(appname, address);
@@ -83,16 +106,16 @@ public class EmbedServer {
                     future.channel().closeFuture().sync();
 
                 } catch (InterruptedException e) {
-                    logger.info(">>>>>>>>>>> xxl-job remoting server stop.");
+                    LOGGER.info(">>>>>>>>>>> xxl-job remoting server stop.");
                 } catch (Exception e) {
-                    logger.error(">>>>>>>>>>> xxl-job remoting server error.", e);
+                    LOGGER.error(">>>>>>>>>>> xxl-job remoting server error.", e);
                 } finally {
                     // stop
                     try {
                         workerGroup.shutdownGracefully();
                         bossGroup.shutdownGracefully();
                     } catch (Exception e) {
-                        logger.error(e.getMessage(), e);
+                        LOGGER.error(e.getMessage(), e);
                     }
                 }
             }
@@ -109,7 +132,7 @@ public class EmbedServer {
 
         // stop registry
         stopRegistry();
-        logger.info(">>>>>>>>>>> xxl-job remoting server destroy success.");
+        LOGGER.info(">>>>>>>>>>> xxl-job remoting server destroy success.");
     }
 
 
@@ -119,7 +142,7 @@ public class EmbedServer {
      * netty_http
      */
     public static class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-        private static final Logger logger = LoggerFactory.getLogger(EmbedHttpServerHandler.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(EmbedHttpServerHandler.class);
 
         private ExecutorBiz executorBiz;
         private String accessToken;
@@ -192,7 +215,7 @@ public class EmbedServer {
                         return new ReturnT<String>(ReturnT.FAIL_CODE, "invalid request, uri-mapping(" + uri + ") not found.");
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                LOGGER.error(e.getMessage(), e);
                 return new ReturnT<String>(ReturnT.FAIL_CODE, "request error:" + ThrowableUtil.toString(e));
             }
         }
@@ -218,7 +241,7 @@ public class EmbedServer {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            logger.error(">>>>>>>>>>> xxl-job provider netty_http server caught exception", cause);
+            LOGGER.error(">>>>>>>>>>> xxl-job provider netty_http server caught exception", cause);
             ctx.close();
         }
 
@@ -226,7 +249,7 @@ public class EmbedServer {
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
             if (evt instanceof IdleStateEvent) {
                 ctx.channel().close();      // beat 3N, close if idle
-                logger.debug(">>>>>>>>>>> xxl-job provider netty_http server close an idle channel.");
+                LOGGER.debug(">>>>>>>>>>> xxl-job provider netty_http server close an idle channel.");
             } else {
                 super.userEventTriggered(ctx, evt);
             }

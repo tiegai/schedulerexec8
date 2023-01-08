@@ -1,5 +1,4 @@
 package com.nike.ncp.scheduler.common.context;
-
 /**
  * xxl-job context
  *
@@ -110,11 +109,11 @@ public class XxlJobContext {
 
     private static InheritableThreadLocal<XxlJobContext> contextHolder = new InheritableThreadLocal<XxlJobContext>(); // support for child thread of job handler)
 
-    public static void setXxlJobContext(XxlJobContext xxlJobContext){
+    public static void setXxlJobContext(XxlJobContext xxlJobContext) {
         contextHolder.set(xxlJobContext);
     }
 
-    public static XxlJobContext getXxlJobContext(){
+    public static XxlJobContext getXxlJobContext() {
         return contextHolder.get();
     }
 

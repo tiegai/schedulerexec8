@@ -13,7 +13,7 @@ public class GsonTool {
 
     private static Gson gson = null;
     static {
-            gson= new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+            gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
     }
 
     /**
@@ -65,7 +65,7 @@ public class GsonTool {
             return raw;
         }
         @Override
-        public Type getOwnerType() {return null;}
+        public Type getOwnerType() { return null; }
     }
 
     /**

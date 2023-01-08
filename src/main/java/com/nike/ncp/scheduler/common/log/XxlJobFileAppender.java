@@ -4,7 +4,13 @@ import com.nike.ncp.scheduler.common.biz.model.LogResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -29,9 +35,9 @@ public class XxlJobFileAppender {
 	 */
 	private static String logBasePath = "/data/applogs/xxl-job/jobhandler";
 	private static String glueSrcPath = logBasePath.concat("/gluesource");
-	public static void initLogPath(String logPath){
+	public static void initLogPath(String logPath) {
 		// init
-		if (logPath!=null && logPath.trim().length()>0) {
+		if (logPath != null && logPath.trim().length() > 0) {
 			logBasePath = logPath;
 		}
 		// mk base dir
@@ -88,7 +94,7 @@ public class XxlJobFileAppender {
 	public static void appendLog(String logFileName, String appendLog) {
 
 		// log file
-		if (logFileName==null || logFileName.trim().length()==0) {
+		if (logFileName == null || logFileName.trim().length() == 0) {
 			return;
 		}
 		File logFile = new File(logFileName);
@@ -107,7 +113,6 @@ public class XxlJobFileAppender {
 			appendLog = "";
 		}
 		appendLog += "\r\n";
-		
 		// append file content
 		FileOutputStream fos = null;
 		try {
@@ -125,7 +130,6 @@ public class XxlJobFileAppender {
 				}
 			}
 		}
-		
 	}
 
 	/**
@@ -134,10 +138,10 @@ public class XxlJobFileAppender {
 	 * @param logFileName
 	 * @return log content
 	 */
-	public static LogResult readLog(String logFileName, int fromLineNum){
+	public static LogResult readLog(String logFileName, int fromLineNum) {
 
 		// valid log file
-		if (logFileName==null || logFileName.trim().length()==0) {
+		if (logFileName == null || logFileName.trim().length() == 0) {
             return new LogResult(fromLineNum, 0, "readLog fail, logFile not found", true);
 		}
 		File logFile = new File(logFileName);
@@ -155,7 +159,7 @@ public class XxlJobFileAppender {
 			reader = new LineNumberReader(new InputStreamReader(new FileInputStream(logFile), "utf-8"));
 			String line = null;
 
-			while ((line = reader.readLine())!=null) {
+			while ((line = reader.readLine()) != null) {
 				toLineNum = reader.getLineNumber();		// [from, to], start as 1
 				if (toLineNum >= fromLineNum) {
 					logContentBuffer.append(line).append("\n");
@@ -190,7 +194,7 @@ public class XxlJobFileAppender {
 	 * @param logFile
 	 * @return log line content
 	 */
-	public static String readLines(File logFile){
+	public static String readLines(File logFile) {
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile), "utf-8"));

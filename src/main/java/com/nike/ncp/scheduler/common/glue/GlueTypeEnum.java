@@ -15,7 +15,7 @@ public enum GlueTypeEnum {
     private String cmd;
     private String suffix;
 
-    private GlueTypeEnum(String desc, boolean isScript, String cmd, String suffix) {
+    GlueTypeEnum(String desc, boolean isScript, String cmd, String suffix) {
         this.desc = desc;
         this.isScript = isScript;
         this.cmd = cmd;
@@ -38,7 +38,7 @@ public enum GlueTypeEnum {
         return suffix;
     }
 
-    public static GlueTypeEnum match(String name){
+    public static GlueTypeEnum match(String name) {
         for (GlueTypeEnum item: GlueTypeEnum.values()) {
             if (item.name().equals(name)) {
                 return item;

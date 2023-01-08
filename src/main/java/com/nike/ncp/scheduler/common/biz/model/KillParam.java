@@ -1,5 +1,4 @@
 package com.nike.ncp.scheduler.common.biz.model;
-
 import java.io.Serializable;
 
 public class KillParam implements Serializable {

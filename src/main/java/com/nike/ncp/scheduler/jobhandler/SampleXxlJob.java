@@ -1,6 +1,5 @@
 package com.nike.ncp.scheduler.jobhandler;
 
-import com.nike.ncp.scheduler.common.biz.model.ReturnT;
 import com.nike.ncp.scheduler.common.context.XxlJobHelper;
 import com.nike.ncp.scheduler.common.handler.annotation.XxlJob;
 import org.slf4j.Logger;
@@ -130,7 +129,7 @@ public class SampleXxlJob {
         if (exitValue == 0) {
             // default success
         } else {
-            XxlJobHelper.handleFail("command exit value("+exitValue+") is failed");
+            XxlJobHelper.handleFail("command exit value(" + exitValue + ") is failed");
         }
 
     }
@@ -148,8 +147,8 @@ public class SampleXxlJob {
 
         // param parse
         String param = XxlJobHelper.getJobParam();
-        if (param==null || param.trim().length()==0) {
-            XxlJobHelper.log("param["+ param +"] invalid.");
+        if (param == null || param.trim().length() == 0) {
+            XxlJobHelper.log("param[" + param + "] invalid.");
 
             XxlJobHelper.handleFail();
             return;
@@ -172,14 +171,14 @@ public class SampleXxlJob {
         }
 
         // param valid
-        if (url==null || url.trim().length()==0) {
-            XxlJobHelper.log("url["+ url +"] invalid.");
+        if (url == null || url.trim().length() == 0) {
+            XxlJobHelper.log("url[" + url + "] invalid.");
 
             XxlJobHelper.handleFail();
             return;
         }
-        if (method==null || !Arrays.asList("GET", "POST").contains(method)) {
-            XxlJobHelper.log("method["+ method +"] invalid.");
+        if (method == null || !Arrays.asList("GET", "POST").contains(method)) {
+            XxlJobHelper.log("method[" + method + "] invalid.");
 
             XxlJobHelper.handleFail();
             return;
@@ -209,7 +208,7 @@ public class SampleXxlJob {
             connection.connect();
 
             // data
-            if (isPostMethod && data!=null && data.trim().length()>0) {
+            if (isPostMethod && data != null && data.trim().length() > 0) {
                 DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
                 dataOutputStream.write(data.getBytes("UTF-8"));
                 dataOutputStream.flush();
@@ -266,8 +265,8 @@ public class SampleXxlJob {
 
         // param parse
         String param = XxlJobHelper.getJobParam();
-        if (param==null || param.trim().length()==0) {
-            XxlJobHelper.log("param["+ param +"] invalid.");
+        if (param == null || param.trim().length() == 0) {
+            XxlJobHelper.log("param[" + param + "] invalid.");
 
             XxlJobHelper.handleFail();
             return;
@@ -290,14 +289,14 @@ public class SampleXxlJob {
         }
 
         // param valid
-        if (url==null || url.trim().length()==0) {
-            XxlJobHelper.log("url["+ url +"] invalid.");
+        if (url == null || url.trim().length() == 0) {
+            XxlJobHelper.log("url[" + url + "] invalid.");
 
             XxlJobHelper.handleFail();
             return;
         }
-        if (method==null || !Arrays.asList("GET", "POST").contains(method)) {
-            XxlJobHelper.log("method["+ method +"] invalid.");
+        if (method == null || !Arrays.asList("GET", "POST").contains(method)) {
+            XxlJobHelper.log("method[" + method + "] invalid.");
 
             XxlJobHelper.handleFail();
             return;
@@ -327,7 +326,7 @@ public class SampleXxlJob {
             connection.connect();
 
             // data
-            if (isPostMethod && data!=null && data.trim().length()>0) {
+            if (isPostMethod && data != null && data.trim().length() > 0) {
                 DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
                 dataOutputStream.write(data.getBytes("UTF-8"));
                 dataOutputStream.flush();
@@ -379,10 +378,10 @@ public class SampleXxlJob {
     public void demoJobHandler2() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
     }
-    public void init(){
+    public void init() {
         logger.info("init");
     }
-    public void destroy(){
+    public void destroy() {
         logger.info("destroy");
     }
 

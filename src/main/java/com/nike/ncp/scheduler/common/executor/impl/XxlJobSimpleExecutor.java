@@ -15,7 +15,7 @@ import java.util.List;
  *
  */
 public class XxlJobSimpleExecutor extends XxlJobExecutor {
-    private static final Logger logger = LoggerFactory.getLogger(XxlJobSimpleExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XxlJobSimpleExecutor.class);
 
 
     private List<Object> xxlJobBeanList = new ArrayList<>();
@@ -48,7 +48,7 @@ public class XxlJobSimpleExecutor extends XxlJobExecutor {
 
 
     private void initJobHandlerMethodRepository(List<Object> xxlJobBeanList) {
-        if (xxlJobBeanList==null || xxlJobBeanList.size()==0) {
+        if (xxlJobBeanList == null || xxlJobBeanList.size() == 0) {
             return;
         }
 
