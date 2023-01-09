@@ -7,6 +7,7 @@ public class KillParam implements Serializable {
 
     public KillParam() {
     }
+
     public KillParam(int jobId) {
         this.jobId = jobId;
     }
@@ -21,5 +22,4 @@ public class KillParam implements Serializable {
     public void setJobId(int jobId) {
         this.jobId = jobId;
     }
-
 }

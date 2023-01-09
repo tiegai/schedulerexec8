@@ -39,7 +39,7 @@ public enum GlueTypeEnum {
     }
 
     public static GlueTypeEnum match(String name) {
-        for (GlueTypeEnum item: GlueTypeEnum.values()) {
+        for (GlueTypeEnum item : GlueTypeEnum.values()) {
             if (item.name().equals(name)) {
                 return item;
             }

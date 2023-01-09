@@ -3,10 +3,12 @@ package com.nike.ncp.scheduler.common.biz.model;
 import java.io.Serializable;
 
 public class LogParam implements Serializable {
+
     private static final long serialVersionUID = 42L;
 
     public LogParam() {
     }
+
     public LogParam(long logDateTim, long logId, int fromLineNum) {
         this.logDateTim = logDateTim;
         this.logId = logId;
@@ -40,5 +42,4 @@ public class LogParam implements Serializable {
     public void setFromLineNum(int fromLineNum) {
         this.fromLineNum = fromLineNum;
     }
-
 }

@@ -19,12 +19,12 @@ public final class IpUtil {
     private IpUtil() {
 
     }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(IpUtil.class);
 
     private static final String ANYHOST_VALUE = "0.0.0.0";
     private static final String LOCALHOST_VALUE = "127.0.0.1";
     private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
-
 
 
     private static volatile InetAddress localAddr = null;

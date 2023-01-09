@@ -24,6 +24,7 @@ public final class XxlJobRemotingUtil {
     private XxlJobRemotingUtil() {
 
     }
+
     private static Logger logger = LoggerFactory.getLogger(XxlJobRemotingUtil.class);
     public static final String XXL_JOB_ACCESS_TOKEN = "XXL-JOB-ACCESS-TOKEN";
 
@@ -46,14 +47,17 @@ public final class XxlJobRemotingUtil {
             }
         });
     }
+
     private static final TrustManager[] TRUST_ALL_CERTS = new TrustManager[]{new X509TrustManager() {
         @Override
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[]{};
         }
+
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         }
+
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         }

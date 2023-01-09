@@ -18,6 +18,7 @@ public class SpringGlueFactory extends GlueFactory {
 
     /**
      * inject action of spring
+     *
      * @param instance
      */
     @Override

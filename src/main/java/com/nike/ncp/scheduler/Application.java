@@ -11,10 +11,10 @@ import com.nike.wingtips.springboot.WingtipsSpringBootConfiguration;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.nike"})
-@Import({ WingtipsSpringBootConfiguration.class })
+@Import({WingtipsSpringBootConfiguration.class})
 public class Application {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 

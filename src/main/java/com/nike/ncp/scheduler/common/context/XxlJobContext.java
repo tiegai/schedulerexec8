@@ -1,9 +1,5 @@
 package com.nike.ncp.scheduler.common.context;
-/**
- * xxl-job context
- *
- * [Dear hj]
- */
+
 public class XxlJobContext {
 
     public static final int HANDLE_CODE_SUCCESS = 200;
@@ -45,11 +41,10 @@ public class XxlJobContext {
 
     /**
      * handleCode：The result status of job execution
-     *
-     *      200 : success
-     *      500 : fail
-     *      502 : timeout
-     *
+     * <p>
+     * 200 : success
+     * 500 : fail
+     * 502 : timeout
      */
     private int handleCode;
 

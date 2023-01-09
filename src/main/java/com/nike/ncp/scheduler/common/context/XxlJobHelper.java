@@ -13,7 +13,6 @@ import java.util.Date;
 
 /**
  * helper for xxl-job
- *
  */
 public final class XxlJobHelper {
 
@@ -104,10 +103,10 @@ public final class XxlJobHelper {
     /**
      * append log with pattern
      *
-     * @param appendLogPattern  like "aaa {} bbb {} ccc"
-     * @param appendLogArguments    like "111, true"
+     * @param appendLogPattern   like "aaa {} bbb {} ccc"
+     * @param appendLogArguments like "111, true"
      */
-    public static boolean log(String appendLogPattern, Object ... appendLogArguments) {
+    public static boolean log(String appendLogPattern, Object... appendLogArguments) {
 
         FormattingTuple ft = MessageFormatter.arrayFormat(appendLogPattern, appendLogArguments);
         String appendLog = ft.getMessage();
@@ -232,12 +231,9 @@ public final class XxlJobHelper {
     }
 
     /**
-     * @param handleCode
-     *
-     *      200 : success
-     *      500 : fail
-     *      502 : timeout
-     *
+     * @param handleCode 200 : success
+     *                   500 : fail
+     *                   502 : timeout
      * @param handleMsg
      * @return
      */

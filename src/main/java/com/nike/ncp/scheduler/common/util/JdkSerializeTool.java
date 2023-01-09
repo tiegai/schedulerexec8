@@ -15,6 +15,7 @@ public final class JdkSerializeTool {
     private JdkSerializeTool() {
 
     }
+
     private static Logger logger = LoggerFactory.getLogger(JdkSerializeTool.class);
 
 
@@ -56,7 +57,7 @@ public final class JdkSerializeTool {
      * @param bytes
      * @return
      */
-    public static  <T> Object deserialize(byte[] bytes, Class<T> clazz) {
+    public static <T> Object deserialize(byte[] bytes, Class<T> clazz) {
         ByteArrayInputStream bais = null;
         try {
             // 反序列化

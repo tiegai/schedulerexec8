@@ -8,7 +8,6 @@ import java.lang.annotation.Inherited;
 
 /**
  * annotation for method jobhandler
- *
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

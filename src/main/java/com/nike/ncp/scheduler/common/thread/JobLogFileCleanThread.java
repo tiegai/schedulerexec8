@@ -19,12 +19,14 @@ public class JobLogFileCleanThread {
     private static Logger logger = LoggerFactory.getLogger(JobLogFileCleanThread.class);
 
     private static JobLogFileCleanThread instance = new JobLogFileCleanThread();
+
     public static JobLogFileCleanThread getInstance() {
         return instance;
     }
 
     private Thread localThread;
     private volatile boolean toStop = false;
+
     public void start(final long logRetentionDays) {
 
         // limit min value
@@ -50,7 +52,7 @@ public class JobLogFileCleanThread {
 
                             Date todayDate = todayCal.getTime();
 
-                            for (File childFile: childDirs) {
+                            for (File childFile : childDirs) {
 
                                 // valid
                                 if (!childFile.isDirectory()) {

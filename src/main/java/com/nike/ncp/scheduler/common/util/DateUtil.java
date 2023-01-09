@@ -2,6 +2,7 @@ package com.nike.ncp.scheduler.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,6 +27,7 @@ public final class DateUtil {
     private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private static final ThreadLocal<Map<String, DateFormat>> DATE_FORMAT_THREAD_LOCAL = new ThreadLocal<Map<String, DateFormat>>();
+
     private static DateFormat getDateFormat(String pattern) {
         if (pattern == null || pattern.trim().length() == 0) {
             throw new IllegalArgumentException("pattern cannot be empty.");
@@ -153,5 +155,4 @@ public final class DateUtil {
         c.add(calendarField, amount);
         return c.getTime();
     }
-
 }

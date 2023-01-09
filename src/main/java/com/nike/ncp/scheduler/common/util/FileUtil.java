@@ -15,6 +15,7 @@ public final class FileUtil {
     private FileUtil() {
 
     }
+
     private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     /**

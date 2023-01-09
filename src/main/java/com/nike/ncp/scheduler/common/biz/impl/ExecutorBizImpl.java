@@ -1,11 +1,11 @@
 package com.nike.ncp.scheduler.common.biz.impl;
 
+import com.nike.ncp.scheduler.common.biz.model.LogResult;
+import com.nike.ncp.scheduler.common.biz.model.LogParam;
 import com.nike.ncp.scheduler.common.biz.model.IdleBeatParam;
 import com.nike.ncp.scheduler.common.biz.model.KillParam;
 import com.nike.ncp.scheduler.common.biz.model.ReturnT;
 import com.nike.ncp.scheduler.common.biz.model.TriggerParam;
-import com.nike.ncp.scheduler.common.biz.model.LogResult;
-import com.nike.ncp.scheduler.common.biz.model.LogParam;
 import com.nike.ncp.scheduler.common.executor.XxlJobExecutor;
 import com.nike.ncp.scheduler.common.glue.GlueFactory;
 import com.nike.ncp.scheduler.common.glue.GlueTypeEnum;

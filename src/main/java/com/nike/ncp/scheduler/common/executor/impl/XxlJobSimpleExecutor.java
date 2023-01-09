@@ -12,16 +12,17 @@ import java.util.List;
 
 /**
  * xxl-job executor (for frameless)
- *
  */
 public class XxlJobSimpleExecutor extends XxlJobExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(XxlJobSimpleExecutor.class);
 
 
     private List<Object> xxlJobBeanList = new ArrayList<>();
+
     public List<Object> getXxlJobBeanList() {
         return xxlJobBeanList;
     }
+
     public void setXxlJobBeanList(List<Object> xxlJobBeanList) {
         this.xxlJobBeanList = xxlJobBeanList;
     }
@@ -53,7 +54,7 @@ public class XxlJobSimpleExecutor extends XxlJobExecutor {
         }
 
         // init job handler from method
-        for (Object bean: xxlJobBeanListParam) {
+        for (Object bean : xxlJobBeanListParam) {
             // method
             Method[] methods = bean.getClass().getDeclaredMethods();
             if (methods.length == 0) {
