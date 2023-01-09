@@ -14,8 +14,6 @@ import java.util.concurrent.ConcurrentMap;
  *
  */
 public class GlueFactory {
-
-
 	private static GlueFactory glueFactory = new GlueFactory();
 	public static GlueFactory getInstance() {
 		return glueFactory;

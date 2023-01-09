@@ -1,8 +1,6 @@
 package com.nike.ncp.scheduler.common.biz.model;
 
 import java.io.Serializable;
-
-
 public class ReturnT<T> implements Serializable {
 	public static final long serialVersionUID = 42L;
 

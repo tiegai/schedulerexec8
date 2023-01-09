@@ -8,7 +8,6 @@ import com.nike.ncp.scheduler.common.handler.IJobHandler;
  *
  */
 public class GlueJobHandler extends IJobHandler {
-
 	private long glueUpdatetime;
 	private IJobHandler jobHandler;
 	public GlueJobHandler(IJobHandler jobHandler, long glueUpdatetime) {

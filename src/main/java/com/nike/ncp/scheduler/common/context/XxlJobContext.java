@@ -1,5 +1,4 @@
 package com.nike.ncp.scheduler.common.context;
-
 /**
  * xxl-job context
  *

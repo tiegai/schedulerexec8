@@ -1,7 +1,6 @@
 package com.nike.ncp.scheduler.config;
 
 import com.nike.ncp.scheduler.common.executor.impl.XxlJobSpringExecutor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
