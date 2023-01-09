@@ -4,7 +4,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 
-public class ThrowableUtil {
+public final class ThrowableUtil {
+
+    private ThrowableUtil() {
+
+    }
 
     /**
      * parse error to string

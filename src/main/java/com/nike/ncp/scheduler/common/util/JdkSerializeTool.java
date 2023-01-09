@@ -10,7 +10,11 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 
 
-public class JdkSerializeTool {
+public final class JdkSerializeTool {
+
+    private JdkSerializeTool() {
+
+    }
     private static Logger logger = LoggerFactory.getLogger(JdkSerializeTool.class);
 
 

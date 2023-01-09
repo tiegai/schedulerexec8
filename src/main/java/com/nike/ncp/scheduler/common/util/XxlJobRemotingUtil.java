@@ -19,7 +19,11 @@ import java.net.URL;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-public class XxlJobRemotingUtil {
+public final class XxlJobRemotingUtil {
+
+    private XxlJobRemotingUtil() {
+
+    }
     private static Logger logger = LoggerFactory.getLogger(XxlJobRemotingUtil.class);
     public static final String XXL_JOB_ACCESS_TOKEN = "XXL-JOB-ACCESS-TOKEN";
 

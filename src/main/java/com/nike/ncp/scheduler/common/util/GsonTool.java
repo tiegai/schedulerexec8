@@ -9,7 +9,11 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 
-public class GsonTool {
+public final class GsonTool {
+
+    private GsonTool() {
+
+    }
 
     private static Gson gson = null;
     static {

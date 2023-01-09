@@ -13,7 +13,11 @@ import java.util.Map;
 /**
  * date util
  */
-public class DateUtil {
+public final class DateUtil {
+
+    private DateUtil() {
+
+    }
 
     // ---------------------- format parse ----------------------
     private static Logger logger = LoggerFactory.getLogger(DateUtil.class);

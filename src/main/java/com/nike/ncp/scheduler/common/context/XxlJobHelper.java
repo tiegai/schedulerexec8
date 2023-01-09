@@ -15,7 +15,11 @@ import java.util.Date;
  * helper for xxl-job
  *
  */
-public class XxlJobHelper {
+public final class XxlJobHelper {
+
+    private XxlJobHelper() {
+
+    }
 
     // ---------------------- base info ----------------------
 

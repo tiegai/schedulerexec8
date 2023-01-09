@@ -17,7 +17,10 @@ import java.util.Date;
 /**
  * store trigger log in each log-file
  */
-public class XxlJobFileAppender {
+public final class XxlJobFileAppender {
+	private XxlJobFileAppender() {
+
+	}
 	private static Logger logger = LoggerFactory.getLogger(XxlJobFileAppender.class);
 
 	/**

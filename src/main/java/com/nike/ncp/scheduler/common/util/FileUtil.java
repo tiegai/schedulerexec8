@@ -11,9 +11,11 @@ import java.io.IOException;
 /**
  * file tool
  */
-public class FileUtil {
-    private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
+public final class FileUtil {
+    private FileUtil() {
 
+    }
+    private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * delete recursively

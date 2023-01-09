@@ -14,7 +14,11 @@ import java.util.regex.Pattern;
 /**
  * ip tool
  */
-public class IpUtil {
+public final class IpUtil {
+
+    private IpUtil() {
+
+    }
     private static final Logger LOGGER = LoggerFactory.getLogger(IpUtil.class);
 
     private static final String ANYHOST_VALUE = "0.0.0.0";
