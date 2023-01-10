@@ -7,10 +7,10 @@ import java.lang.reflect.Method;
 
 public class MethodJobHandler extends IJobHandler {
 
-    private final Object target;
-    private final Method method;
-    private Method initMethod;
-    private Method destroyMethod;
+    private transient Object target;
+    private transient Method method;
+    private transient Method initMethod;
+    private transient Method destroyMethod;
 
     public MethodJobHandler(Object target, Method method, Method initMethod, Method destroyMethod) {
         this.target = target;

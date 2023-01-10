@@ -33,7 +33,7 @@ public class TriggerCallbackThread {
     /**
      * job results callback queue
      */
-    private LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<HandleCallbackParam>();
+    private transient LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<HandleCallbackParam>();
 
     public static void pushCallBack(HandleCallbackParam callback) {
         getInstance().callBackQueue.add(callback);
@@ -43,9 +43,9 @@ public class TriggerCallbackThread {
     /**
      * callback thread
      */
-    private Thread triggerCallbackThread;
-    private Thread triggerRetryCallbackThread;
-    private volatile boolean toStop = false;
+    private transient Thread triggerCallbackThread;
+    private transient Thread triggerRetryCallbackThread;
+    private transient volatile boolean toStop = false;
 
     public void start() {
 

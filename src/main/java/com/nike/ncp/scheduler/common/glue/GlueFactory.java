@@ -31,34 +31,31 @@ public class GlueFactory {
     /**
      * groovy class loader
      */
-    private GroovyClassLoader groovyClassLoader = new GroovyClassLoader();
-    private ConcurrentMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
+    private transient GroovyClassLoader groovyClassLoader = new GroovyClassLoader();
+    @SuppressWarnings("unchecked")
+    private transient ConcurrentMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
-    /**
-     * load new instance, prototype
-     *
-     * @param codeSource
-     * @return
-     * @throws Exception
-     */
+    @SuppressWarnings("unchecked")
     public IJobHandler loadNewInstance(String codeSource) throws Exception {
         if (codeSource != null && codeSource.trim().length() > 0) {
             Class<?> clazz = getCodeSourceClass(codeSource);
             if (clazz != null) {
-                Object instance = clazz.newInstance();
-                if (instance != null) {
+                //Object instance = clazz.newInstance();
+                Object instance = clazz.getDeclaredConstructor().newInstance();
+                //if (instance != null) {
                     if (instance instanceof IJobHandler) {
                         this.injectService(instance);
                         return (IJobHandler) instance;
                     } else {
                         throw new IllegalArgumentException(">>>>>>>>>>> xxl-glue, loadNewInstance error, " + "cannot convert from instance[" + instance.getClass() + "] to IJobHandler");
                     }
-                }
+                //}
             }
         }
         throw new IllegalArgumentException(">>>>>>>>>>> xxl-glue, loadNewInstance error, instance is null");
     }
 
+    @SuppressWarnings("unchecked")
     private Class<?> getCodeSourceClass(String codeSource) {
         try {
             byte[] md5 = MessageDigest.getInstance("MD5").digest(codeSource.getBytes());
@@ -75,11 +72,6 @@ public class GlueFactory {
         }
     }
 
-    /**
-     * inject service of bean field
-     *
-     * @param instance
-     */
     public void injectService(Object instance) {
         // do something
     }

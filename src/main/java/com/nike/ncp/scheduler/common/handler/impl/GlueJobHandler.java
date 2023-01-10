@@ -7,8 +7,8 @@ import com.nike.ncp.scheduler.common.handler.IJobHandler;
  * glue job handler
  */
 public class GlueJobHandler extends IJobHandler {
-    private long glueUpdatetime;
-    private IJobHandler jobHandler;
+    private transient long glueUpdatetime;
+    private transient IJobHandler jobHandler;
 
     public GlueJobHandler(IJobHandler jobHandler, long glueUpdatetime) {
         this.jobHandler = jobHandler;

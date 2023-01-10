@@ -49,8 +49,8 @@ import java.util.concurrent.RejectedExecutionHandler;
 public class EmbedServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmbedServer.class);
 
-    private ExecutorBiz executorBiz;
-    private Thread thread;
+    private transient ExecutorBiz executorBiz;
+    private transient Thread thread;
 
     public void start(final String address, final int port, final String appname, final String accessToken) {
         executorBiz = new ExecutorBizImpl();
@@ -145,9 +145,9 @@ public class EmbedServer {
     public static class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         private static final Logger LOGGER = LoggerFactory.getLogger(EmbedHttpServerHandler.class);
 
-        private ExecutorBiz executorBiz;
-        private String accessToken;
-        private ThreadPoolExecutor bizThreadPool;
+        private transient ExecutorBiz executorBiz;
+        private transient String accessToken;
+        private transient ThreadPoolExecutor bizThreadPool;
 
         public EmbedHttpServerHandler(ExecutorBiz executorBiz, String accessToken, ThreadPoolExecutor bizThreadPool) {
             this.executorBiz = executorBiz;

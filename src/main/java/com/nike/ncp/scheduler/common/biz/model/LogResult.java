@@ -18,7 +18,7 @@ public class LogResult implements Serializable {
     private int fromLineNum;
     private int toLineNum;
     private String logContent;
-    private boolean isEnd;
+    private transient boolean isEnd;
 
     public int getFromLineNum() {
         return fromLineNum;

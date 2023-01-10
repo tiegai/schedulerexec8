@@ -26,14 +26,14 @@ public class XxlJobExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(XxlJobExecutor.class);
 
     // ---------------------- param ----------------------
-    private String adminAddresses;
-    private String accessToken;
-    private String appname;
-    private String address;
-    private String ip;
-    private int port;
-    private String logPath;
-    private int logRetentionDays;
+    private transient String adminAddresses;
+    private transient String accessToken;
+    private transient String appname;
+    private transient String address;
+    private transient String ip;
+    private transient int port;
+    private transient String logPath;
+    private transient int logRetentionDays;
 
     public void setAdminAddresses(String adminAddresses) {
         this.adminAddresses = adminAddresses;
@@ -143,7 +143,7 @@ public class XxlJobExecutor {
     }
 
     // ---------------------- executor-server (rpc provider) ----------------------
-    private EmbedServer embedServer = null;
+    private transient EmbedServer embedServer = null;
 
     private void initEmbedServer(String addressParam, String ipParam, int portParam, String appNameParam, String accessTokenParam) throws Exception {
 

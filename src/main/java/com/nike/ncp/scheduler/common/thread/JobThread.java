@@ -29,16 +29,16 @@ import java.util.concurrent.TimeoutException;
  */
 public class JobThread extends Thread {
     private static Logger logger = LoggerFactory.getLogger(JobThread.class);
-    private int jobId;
-    private IJobHandler handler;
-    private LinkedBlockingQueue<TriggerParam> triggerQueue;
-    private Set<Long> triggerLogIdSet;        // avoid repeat trigger for the same TRIGGER_LOG_ID
+    private transient int jobId;
+    private transient IJobHandler handler;
+    private transient LinkedBlockingQueue<TriggerParam> triggerQueue;
+    private transient Set<Long> triggerLogIdSet;        // avoid repeat trigger for the same TRIGGER_LOG_ID
 
-    private volatile boolean toStop = false;
-    private String stopReason;
+    private transient volatile boolean toStop = false;
+    private transient String stopReason;
 
-    private boolean running = false;    // if running job
-    private int idleTimes = 0;            // idel times
+    private transient boolean running = false;    // if running job
+    private transient int idleTimes = 0;            // idel times
 
 
     public JobThread(int jobId, IJobHandler handler) {

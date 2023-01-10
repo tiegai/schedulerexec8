@@ -56,8 +56,8 @@ public final class GsonTool {
     }
 
     public static class ParameterizedType4ReturnT implements ParameterizedType {
-        private final Class raw;
-        private final Type[] args;
+        private transient Class raw;
+        private transient Type[] args;
 
         public ParameterizedType4ReturnT(Class raw, Type[] args) {
             this.raw = raw;

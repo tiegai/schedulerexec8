@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 
 public class ExecutorBizImpl implements ExecutorBiz {
-    private static Logger logger = LoggerFactory.getLogger(ExecutorBizImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorBizImpl.class);
 
     @Override
     public ReturnT<String> beat() {
@@ -56,13 +56,13 @@ public class ExecutorBizImpl implements ExecutorBiz {
         GlueTypeEnum glueTypeEnum = GlueTypeEnum.match(triggerParam.getGlueType());
         if (GlueTypeEnum.BEAN == glueTypeEnum) {
 
-            // new jobhandler
+            // new jobHandler
             IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
 
             // valid old jobThread
             if (jobThread != null && jobHandler != newJobHandler) {
                 // change handler, need kill old thread
-                removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
+                removeOldReason = "change jobHandler or glue type, and terminate the old job thread.";
 
                 jobThread = null;
                 jobHandler = null;
@@ -80,7 +80,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
             // valid old jobThread
             if (jobThread != null && !(jobThread.getHandler() instanceof GlueJobHandler && ((GlueJobHandler) jobThread.getHandler()).getGlueUpdatetime() == triggerParam.getGlueUpdatetime())) {
-                // change handler or gluesource updated, need kill old thread
+                // change handler or glueSource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
                 jobThread = null;
@@ -93,7 +93,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
                     IJobHandler originJobHandler = GlueFactory.getInstance().loadNewInstance(triggerParam.getGlueSource());
                     jobHandler = new GlueJobHandler(originJobHandler, triggerParam.getGlueUpdatetime());
                 } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                     return new ReturnT<String>(ReturnT.FAIL_CODE, e.getMessage());
                 }
             }
@@ -101,7 +101,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
             // valid old jobThread
             if (jobThread != null && !(jobThread.getHandler() instanceof ScriptJobHandler && ((ScriptJobHandler) jobThread.getHandler()).getGlueUpdatetime() == triggerParam.getGlueUpdatetime())) {
-                // change script or gluesource updated, need kill old thread
+                // change script or glueSource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
                 jobThread = null;

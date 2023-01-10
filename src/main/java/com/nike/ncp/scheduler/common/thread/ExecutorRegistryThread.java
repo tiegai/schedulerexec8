@@ -20,8 +20,8 @@ public class ExecutorRegistryThread {
         return instance;
     }
 
-    private Thread registryThread;
-    private volatile boolean toStop = false;
+    private transient Thread registryThread;
+    private transient volatile boolean toStop = false;
 
     public void start(final String appname, final String address) {
 

@@ -9,31 +9,31 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class XxlJobConfig {
-    private Logger logger = LoggerFactory.getLogger(XxlJobConfig.class);
+    private transient Logger logger = LoggerFactory.getLogger(XxlJobConfig.class);
 
     @Value("${xxl.job.admin.addresses}")
-    private String adminAddresses;
+    private transient String adminAddresses;
 
     @Value("${xxl.job.accessToken}")
-    private String accessToken;
+    private transient String accessToken;
 
     @Value("${xxl.job.executor.appname}")
-    private String appname;
+    private transient String appname;
 
     @Value("${xxl.job.executor.address}")
-    private String address;
+    private transient String address;
 
     @Value("${xxl.job.executor.ip}")
-    private String ip;
+    private transient String ip;
 
     @Value("${xxl.job.executor.port}")
-    private int port;
+    private transient int port;
 
     @Value("${xxl.job.executor.logpath}")
-    private String logPath;
+    private transient String logPath;
 
     @Value("${xxl.job.executor.logretentiondays}")
-    private int logRetentionDays;
+    private transient int logRetentionDays;
 
 
     @Bean

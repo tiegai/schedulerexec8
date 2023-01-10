@@ -12,10 +12,10 @@ import java.io.File;
 
 public class ScriptJobHandler extends IJobHandler {
 
-    private int jobId;
-    private long glueUpdatetime;
-    private String gluesource;
-    private GlueTypeEnum glueType;
+    private transient int jobId;
+    private transient long glueUpdatetime;
+    private transient String gluesource;
+    private transient GlueTypeEnum glueType;
 
     public ScriptJobHandler(int jobId, long glueUpdatetime, String gluesource, GlueTypeEnum glueType) {
         this.jobId = jobId;

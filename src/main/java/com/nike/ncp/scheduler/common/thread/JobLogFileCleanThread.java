@@ -24,8 +24,8 @@ public class JobLogFileCleanThread {
         return instance;
     }
 
-    private Thread localThread;
-    private volatile boolean toStop = false;
+    private transient Thread localThread;
+    private transient volatile boolean toStop = false;
 
     public void start(final long logRetentionDays) {
 

@@ -26,9 +26,9 @@ public class ExecutorBizClient implements ExecutorBiz {
         }
     }
 
-    private String addressUrl;
-    private String accessToken;
-    private int timeout = 3;
+    private transient String addressUrl;
+    private transient String accessToken;
+    private transient int timeout = 3;
 
 
     @Override

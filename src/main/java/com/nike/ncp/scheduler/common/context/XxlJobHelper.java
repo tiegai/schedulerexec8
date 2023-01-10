@@ -98,7 +98,7 @@ public final class XxlJobHelper {
 
     // ---------------------- tool for log ----------------------
 
-    private static Logger logger = LoggerFactory.getLogger("xxl-job logger");
+    private static final Logger LOGGER = LoggerFactory.getLogger("xxl-job logger");
 
     /**
      * append log with pattern
@@ -166,7 +166,7 @@ public final class XxlJobHelper {
             XxlJobFileAppender.appendLog(logFileName, formatAppendLog);
             return true;
         } else {
-            logger.info(">>>>>>>>>>> {}", formatAppendLog);
+            LOGGER.info(">>>>>>>>>>> {}", formatAppendLog);
             return false;
         }
     }
