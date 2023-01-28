@@ -2,6 +2,7 @@
 @Library(['cop-pipeline-bootstrap', 'cop-pipeline-step']) _
 loadPipelines('stable/v1.4.x', 'master')
 
+enableLogger()
 
 def cloudformationTemplatePath  = './cloudformation/ecs-service-deploy-template.yaml'
 
@@ -25,15 +26,16 @@ def account     = accountSettings.test
 
 Map ecsServiceSettings = [
     'ClusterName'              : 'onencp-test-cluster',
-    'AppContainerCpu'          : '1024',
-    'AppContainerMemory'       : '2048',
-    'TaskMemory'               : '2048',
+    'TaskCpu'                  : '2048',
+    'AppContainerCpu'          : '2048',
+    'AppContainerMemory'       : '4096',
+    'TaskMemory'               : '4096',
     'ContainerSecurityGroupId' : "${account.securityGroups}",
     'ContainerSubnetId'        : "${account.privateSubnets}",
     'ContainerPort'            : 8080,
     'HealthCheckPort'          : 8080,
     'ListenerRulePriority'     : 2,
-    'ContainerDesiredCount'    : 3,
+    'ContainerDesiredCount'    : 1,
     'UseSplunkTaskDriver'      : 'true',
     'ServiceRoleName'          : 'arn:aws-cn:iam::128123422106:role/gc-cds-jenkins',
     'TaskExecutionRoleArn'     : 'arn:aws-cn:iam::128123422106:role/gc-ncp-memberunlock-ecs',
@@ -126,7 +128,9 @@ def twistlock = [
 ]
 
 
+
 def config;
+
 
 node {
     if (params.Flow == 'RELEASE') {
@@ -141,7 +145,13 @@ node {
         )
     }
 
+    checkout scm
+    withGit(credentialsId : 'GHEC') {
+        sh "git pull"
+    }
+
     def props                   = readProperties file: './gradle.properties'
+
 
     def artifactId              = props['artifactId']
 
@@ -154,12 +164,13 @@ node {
         string(
             name            : 'ONENCP_SERVICE',
             defaultValue    : "${artifactId}",
-            description     : 'AWS Resource Requstor',
+            description     : "For service name check, Don't change me!",
         )
 
     ]
 
     def serviceName             = artifactId
+    assert serviceName?.trim() && (! 'null'.equals(serviceName))
 
     def elbStackName            = "onencp-${serviceName}-ELB"
     def stackName               = "onencp-${serviceName}-TASK"
@@ -169,18 +180,15 @@ node {
     def imageName               = "${teamName}/${serviceName}"
     def imageFullName           = "${imageName}:${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
     def loadBalancerRLable      = "app/onencp-internal-${serviceName}-alb/afb09e97b71572bf"
-    String imageTag             = (params.IMAGE_TAG == ''
-                                   ?
-                                   ("${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-                                    .replace("/", "-")
-                                    .replace("_", "-"))
-                                   :
-                                   "${params.IMAGE_TAG}")
+    String imageTag             = (params?.IMAGE_TAG ?:
+                                   "${env.BRANCH_NAME}-${env.BUILD_NUMBER}".replaceAll("[^A-Za-z0-9]+", "-"))
+
 
     def container = [
-        name                : "${serviceName}",
-        group               : "${teamName}",
-        imageName           : "${imageName}",
+        name                    : "${serviceName}",
+        group                   : "${teamName}",
+        imageName               : "${imageName}",
+        releaseTag              : "${imageTag}",
     ]
 
 

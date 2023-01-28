@@ -6,11 +6,16 @@ import com.nike.ncp.scheduler.common.glue.GlueTypeEnum;
 import com.nike.ncp.scheduler.common.handler.IJobHandler;
 import com.nike.ncp.scheduler.common.log.XxlJobFileAppender;
 import com.nike.ncp.scheduler.common.util.ScriptUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 
 public class ScriptJobHandler extends IJobHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScriptJobHandler.class);
+
 
     private transient int jobId;
     private transient long glueUpdatetime;
@@ -30,7 +35,11 @@ public class ScriptJobHandler extends IJobHandler {
             if (glueSrcFileList != null && glueSrcFileList.length > 0) {
                 for (File glueSrcFileItem : glueSrcFileList) {
                     if (glueSrcFileItem.getName().startsWith(String.valueOf(jobId) + "_")) {
-                        glueSrcFileItem.delete();
+                        try {
+                            glueSrcFileItem.delete();
+                        } catch (Exception e) {
+                            LOGGER.error(e.getMessage(), e);
+                        }
                     }
                 }
             }
@@ -43,6 +52,7 @@ public class ScriptJobHandler extends IJobHandler {
     }
 
     @Override
+    @SuppressWarnings("all")
     public void execute() throws Exception {
 
         if (!glueType.isScript()) {

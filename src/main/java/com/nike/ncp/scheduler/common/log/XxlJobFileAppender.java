@@ -22,7 +22,7 @@ public final class XxlJobFileAppender {
 
     }
 
-    private static Logger logger = LoggerFactory.getLogger(XxlJobFileAppender.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XxlJobFileAppender.class);
 
     /**
      * log base path
@@ -47,14 +47,22 @@ public final class XxlJobFileAppender {
         // mk base dir
         File logPathDir = new File(logBasePath);
         if (!logPathDir.exists()) {
-            logPathDir.mkdirs();
+            try {
+                logPathDir.mkdirs();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
         }
         logBasePath = logPathDir.getPath();
 
         // mk glue dir
         File glueBaseDir = new File(logPathDir, "gluesource");
         if (!glueBaseDir.exists()) {
-            glueBaseDir.mkdirs();
+            try {
+                glueBaseDir.mkdirs();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
         }
         glueSrcPath = glueBaseDir.getPath();
     }
@@ -74,13 +82,18 @@ public final class XxlJobFileAppender {
      * @param logId
      * @return
      */
+    @SuppressWarnings("all")
     public static String makeLogFileName(Date triggerDate, long logId) {
 
         // filePath/yyyy-MM-dd
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");    // avoid concurrent problem, can not be static
         File logFilePath = new File(getLogPath(), sdf.format(triggerDate));
         if (!logFilePath.exists()) {
-            logFilePath.mkdir();
+            try {
+                logFilePath.mkdir();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
         }
 
         // filePath/yyyy-MM-dd/9999.log
@@ -94,6 +107,7 @@ public final class XxlJobFileAppender {
      * @param logFileName
      * @param appendLog
      */
+    @SuppressWarnings("all")
     public static void appendLog(String logFileName, String appendLog) {
 
         // log file
@@ -106,7 +120,7 @@ public final class XxlJobFileAppender {
             try {
                 logFile.createNewFile();
             } catch (IOException e) {
-                logger.error(e.getMessage(), e);
+                LOGGER.error(e.getMessage(), e);
                 return;
             }
         }
@@ -123,13 +137,13 @@ public final class XxlJobFileAppender {
             fos.write(appendLog.getBytes("utf-8"));
             fos.flush();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             if (fos != null) {
                 try {
                     fos.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
         }
@@ -141,6 +155,7 @@ public final class XxlJobFileAppender {
      * @param logFileName
      * @return log content
      */
+    @SuppressWarnings("all")
     public static LogResult readLog(String logFileName, int fromLineNum) {
 
         // valid log file
@@ -169,13 +184,13 @@ public final class XxlJobFileAppender {
                 }
             }
         } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
         }
@@ -191,26 +206,27 @@ public final class XxlJobFileAppender {
      * @param logFile
      * @return log line content
      */
+    @SuppressWarnings("all")
     public static String readLines(File logFile) {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile), "utf-8"));
-            if (reader != null) {
-                StringBuilder sb = new StringBuilder();
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
-                return sb.toString();
+            //if (reader != null) {
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
             }
+            return sb.toString();
+            //}
         } catch (IOException e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
         }

@@ -21,13 +21,14 @@ public final class DateUtil {
     }
 
     // ---------------------- format parse ----------------------
-    private static Logger logger = LoggerFactory.getLogger(DateUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DateUtil.class);
 
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private static final ThreadLocal<Map<String, DateFormat>> DATE_FORMAT_THREAD_LOCAL = new ThreadLocal<Map<String, DateFormat>>();
 
+    @SuppressWarnings("all")
     private static DateFormat getDateFormat(String pattern) {
         if (pattern == null || pattern.trim().length() == 0) {
             throw new IllegalArgumentException("pattern cannot be empty.");
@@ -118,7 +119,7 @@ public final class DateUtil {
             Date date = getDateFormat(pattern).parse(dateString);
             return date;
         } catch (Exception e) {
-            logger.warn("parse date error, dateString = {}, pattern={}; errorMsg = {}", dateString, pattern, e.getMessage());
+            LOGGER.warn("parse date error, dateString = {}, pattern={}; errorMsg = {}", dateString, pattern, e.getMessage());
             return null;
         }
     }

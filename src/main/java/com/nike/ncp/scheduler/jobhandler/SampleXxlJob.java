@@ -26,7 +26,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class SampleXxlJob {
-    private static Logger logger = LoggerFactory.getLogger(SampleXxlJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SampleXxlJob.class);
+
+    private static final int STATUS_CODE_SUCCESS = 200;
 
     /*@XxlJob("oneJobHandler")
     public ReturnT<String> oneJobHandler(String param) throws Exception {
@@ -87,15 +89,16 @@ public class SampleXxlJob {
     }
 
 
+    private transient int exitValComm = -1;
+    private transient BufferedReader bufferedReaderComm = null;
     /**
      * 3、命令行任务
      */
     @XxlJob("commandJobHandler")
+    @SuppressWarnings("all")
     public void commandJobHandler() throws Exception {
         String command = XxlJobHelper.getJobParam();
-        int exitValue = -1;
 
-        BufferedReader bufferedReader = null;
         try {
             // command process
             ProcessBuilder processBuilder = new ProcessBuilder();
@@ -106,30 +109,38 @@ public class SampleXxlJob {
             //Process process = Runtime.getRuntime().exec(command);
 
             BufferedInputStream bufferedInputStream = new BufferedInputStream(process.getInputStream());
-            bufferedReader = new BufferedReader(new InputStreamReader(bufferedInputStream));
+            bufferedReaderComm = new BufferedReader(new InputStreamReader(bufferedInputStream, "utf-8"));
 
             // command log
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
+//            String line;
+//            while ((line = bufferedReaderComm.readLine()) != null) {
+//                XxlJobHelper.log(line);
+//            }
+            String line = bufferedReaderComm.readLine();
+            while (line != null) {
                 XxlJobHelper.log(line);
+                line = bufferedReaderComm.readLine();
             }
 
             // command exit
             process.waitFor();
-            exitValue = process.exitValue();
+            exitValComm = process.exitValue();
         } catch (Exception e) {
             XxlJobHelper.log(e);
         } finally {
-            if (bufferedReader != null) {
-                bufferedReader.close();
+            if (bufferedReaderComm != null) {
+                bufferedReaderComm.close();
             }
         }
+        if (exitValComm != 0) {
+            XxlJobHelper.handleFail("command exit value(" + exitValComm + ") is failed");
+        }
 
-        if (exitValue == 0) {
+        /*if (exitValue == 0) {
             // default success
         } else {
             XxlJobHelper.handleFail("command exit value(" + exitValue + ") is failed");
-        }
+        }*/
 
     }
 
@@ -142,6 +153,7 @@ public class SampleXxlJob {
      * "data: content\n";
      */
     @XxlJob("httpJobHandler")
+    @SuppressWarnings("all")
     public void httpJobHandler() throws Exception {
 
         // param parse
@@ -216,7 +228,7 @@ public class SampleXxlJob {
 
             // valid StatusCode
             int statusCode = connection.getResponseCode();
-            if (statusCode != 200) {
+            if (statusCode != STATUS_CODE_SUCCESS) {
                 throw new RuntimeException("Http Request StatusCode(" + statusCode + ") Invalid.");
             }
 
@@ -260,6 +272,7 @@ public class SampleXxlJob {
      * "data: content\n";
      */
     @XxlJob("basicHttpJobHandler")
+    @SuppressWarnings("all")
     public void basicHttpJobHandler() throws Exception {
 
         // param parse
@@ -334,7 +347,7 @@ public class SampleXxlJob {
 
             // valid StatusCode
             int statusCode = connection.getResponseCode();
-            if (statusCode != 200) {
+            if (statusCode != STATUS_CODE_SUCCESS) {
                 throw new RuntimeException("Http Request StatusCode(" + statusCode + ") Invalid.");
             }
 
@@ -379,11 +392,11 @@ public class SampleXxlJob {
     }
 
     public void init() {
-        logger.info("init");
+        LOGGER.info("init");
     }
 
     public void destroy() {
-        logger.info("destroy");
+        LOGGER.info("destroy");
     }
 
 

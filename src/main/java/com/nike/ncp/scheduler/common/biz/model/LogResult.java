@@ -8,17 +8,17 @@ public class LogResult implements Serializable {
     public LogResult() {
     }
 
-    public LogResult(int fromLineNum, int toLineNum, String logContent, boolean isEnd) {
+    public LogResult(int fromLineNum, int toLineNum, String logContent, boolean end) {
         this.fromLineNum = fromLineNum;
         this.toLineNum = toLineNum;
         this.logContent = logContent;
-        this.isEnd = isEnd;
+        this.end = end;
     }
 
     private int fromLineNum;
     private int toLineNum;
     private String logContent;
-    private transient boolean isEnd;
+    private boolean end;
 
     public int getFromLineNum() {
         return fromLineNum;
@@ -45,10 +45,10 @@ public class LogResult implements Serializable {
     }
 
     public boolean isEnd() {
-        return isEnd;
+        return end;
     }
 
     public void setEnd(boolean end) {
-        isEnd = end;
+        this.end = end;
     }
 }

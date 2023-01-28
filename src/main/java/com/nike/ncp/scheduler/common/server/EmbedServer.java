@@ -52,6 +52,7 @@ public class EmbedServer {
     private transient ExecutorBiz executorBiz;
     private transient Thread thread;
 
+    @SuppressWarnings("all")
     public void start(final String address, final int port, final String appname, final String accessToken) {
         executorBiz = new ExecutorBizImpl();
         thread = new Thread(new Runnable() {
@@ -181,6 +182,7 @@ public class EmbedServer {
             });
         }
 
+        @SuppressWarnings("all")
         private Object process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq) {
             // valid
             if (HttpMethod.POST != httpMethod) {

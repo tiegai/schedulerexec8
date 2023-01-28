@@ -16,7 +16,7 @@ public final class FileUtil {
 
     }
 
-    private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * delete recursively
@@ -44,16 +44,24 @@ public final class FileUtil {
         // file
         File file = new File(fileName);
         if (file.exists()) {
-            file.delete();
+            try {
+                file.delete();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
         }
     }
 
-
+    @SuppressWarnings("all")
     public static void writeFileContent(File file, byte[] data) {
 
         // file
         if (!file.exists()) {
-            file.getParentFile().mkdirs();
+            try {
+                file.getParentFile().mkdirs();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
         }
 
         // append file content
@@ -63,22 +71,23 @@ public final class FileUtil {
             fos.write(data);
             fos.flush();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             if (fos != null) {
                 try {
                     fos.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
         }
 
     }
 
+    @SuppressWarnings("all")
     public static byte[] readFileContent(File file) {
-        Long filelength = file.length();
-        byte[] filecontent = new byte[filelength.intValue()];
+        Long fileLength = file.length();
+        byte[] filecontent = new byte[fileLength.intValue()];
 
         FileInputStream in = null;
         try {
@@ -88,14 +97,14 @@ public final class FileUtil {
 
             return filecontent;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             return null;
         } finally {
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
         }

@@ -28,13 +28,13 @@ import java.util.concurrent.TimeoutException;
  * handler thread
  */
 public class JobThread extends Thread {
-    private static Logger logger = LoggerFactory.getLogger(JobThread.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobThread.class);
     private transient int jobId;
     private transient IJobHandler handler;
     private transient LinkedBlockingQueue<TriggerParam> triggerQueue;
     private transient Set<Long> triggerLogIdSet;        // avoid repeat trigger for the same TRIGGER_LOG_ID
 
-    private transient volatile boolean toStop = false;
+    private transient volatile boolean toStopFlag = false;
     private transient String stopReason;
 
     private transient boolean running = false;    // if running job
@@ -64,7 +64,7 @@ public class JobThread extends Thread {
     public ReturnT<String> pushTriggerQueue(TriggerParam triggerParam) {
         // avoid repeat
         if (triggerLogIdSet.contains(triggerParam.getLogId())) {
-            logger.info(">>>>>>>>>>> repeate trigger job, logId:{}", triggerParam.getLogId());
+            LOGGER.info(">>>>>>>>>>> repeate trigger job, logId:{}", triggerParam.getLogId());
             return new ReturnT<String>(ReturnT.FAIL_CODE, "repeate trigger job, logId:" + triggerParam.getLogId());
         }
 
@@ -84,7 +84,7 @@ public class JobThread extends Thread {
          * 在阻塞出抛出InterruptedException异常,但是并不会终止运行的线程本身；
          * 所以需要注意，此处彻底销毁本线程，需要通过共享变量方式；
          */
-        this.toStop = true;
+        this.toStopFlag = true;
         this.stopReason = stopReas;
     }
 
@@ -98,17 +98,18 @@ public class JobThread extends Thread {
     }
 
     @Override
+    @SuppressWarnings("all")
     public void run() {
 
         // init
         try {
             handler.init();
-        } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
         }
 
         // execute
-        while (!toStop) {
+        while (!toStopFlag) {
             running = false;
             idleTimes++;
 
@@ -191,8 +192,8 @@ public class JobThread extends Thread {
                         }
                     }
                 }
-            } catch (Throwable e) {
-                if (toStop) {
+            } catch (Exception e) {
+                if (toStopFlag) {
                     XxlJobHelper.log("<br>----------- JobThread toStop, stopReason:" + stopReason);
                 }
 
@@ -207,7 +208,7 @@ public class JobThread extends Thread {
             } finally {
                 if (triggerParam != null) {
                     // callback handler info
-                    if (!toStop) {
+                    if (!toStopFlag) {
                         // commonm
                         TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
                                 triggerParam.getLogId(),
@@ -245,10 +246,10 @@ public class JobThread extends Thread {
         // destroy
         try {
             handler.destroy();
-        } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
         }
 
-        logger.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
+        LOGGER.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
     }
 }

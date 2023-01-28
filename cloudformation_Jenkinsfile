@@ -1,5 +1,5 @@
 #!groovy
-@Library(['cicd-pipeline', 'cop-pipeline-configuration@c4c-ncp']) _
+@Library(['cicd-pipeline', 'cop-pipeline-step', 'cop-pipeline-configuration@c4c-ncp']) _
 
 
 
@@ -79,6 +79,12 @@ def config;
 
 node {
 
+	checkout scm
+	//def props           = readProperties file: './gradle.properties'
+	withGit(credentialsId : 'GHEC') {
+		sh "git pull"
+	}
+
 	def props           = readProperties file: './gradle.properties'
 	def artifactId      = props['artifactId']
 
@@ -92,13 +98,14 @@ node {
 			string(
 					name            : 'ONENCP_SERVICE',
 					defaultValue    : "${artifactId}",
-					description     : 'AWS Resource Requstor',
+					description     : "For service name check, Don't change me!",
 			)
 	]
 
-	def serviceName             = artifactId
+	def serviceName             = artifactId?.trim()
 	def elbStackName            = "onencp-${serviceName}-ELB"
 
+	assert serviceName?.trim() && (! 'null'.equals(serviceName))
 	config = [
 			customBuildParameters   : customBuildParameters,
 			agentLabel              : account.bmxAgentLabel,

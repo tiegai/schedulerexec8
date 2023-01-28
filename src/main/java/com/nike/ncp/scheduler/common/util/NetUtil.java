@@ -14,7 +14,7 @@ public final class NetUtil {
     private NetUtil() {
 
     }
-    private static Logger logger = LoggerFactory.getLogger(NetUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NetUtil.class);
 
     /**
      * find avaliable port
@@ -31,7 +31,7 @@ public final class NetUtil {
                 portTmp++;
             }
         }
-        portTmp = defaultPort--;
+//        portTmp = defaultPort--;
         while (portTmp > 0) {
             if (!isPortUsed(portTmp)) {
                 return portTmp;
@@ -48,6 +48,7 @@ public final class NetUtil {
      * @param port
      * @return
      */
+    @SuppressWarnings("all")
     public static boolean isPortUsed(int port) {
         boolean used = false;
         ServerSocket serverSocket = null;
@@ -55,14 +56,14 @@ public final class NetUtil {
             serverSocket = new ServerSocket(port);
             used = false;
         } catch (IOException e) {
-            logger.info(">>>>>>>>>>> xxl-job, port[{}] is in use.", port);
+            LOGGER.info(">>>>>>>>>>> xxl-job, port[{}] is in use.", port);
             used = true;
         } finally {
             if (serverSocket != null) {
                 try {
                     serverSocket.close();
                 } catch (IOException e) {
-                    logger.info("");
+                    LOGGER.info("");
                 }
             }
         }

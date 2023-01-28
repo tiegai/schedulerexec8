@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * job file clean thread
  */
 public class JobLogFileCleanThread {
-    private static Logger logger = LoggerFactory.getLogger(JobLogFileCleanThread.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobLogFileCleanThread.class);
 
     private static JobLogFileCleanThread instance = new JobLogFileCleanThread();
 
@@ -25,8 +25,9 @@ public class JobLogFileCleanThread {
     }
 
     private transient Thread localThread;
-    private transient volatile boolean toStop = false;
+    private transient volatile boolean toStopFlag = false;
 
+    @SuppressWarnings("all")
     public void start(final long logRetentionDays) {
 
         // limit min value
@@ -37,7 +38,7 @@ public class JobLogFileCleanThread {
         localThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (!toStop) {
+                while (!toStopFlag) {
                     try {
                         // clean log dir, over logRetentionDays
                         File[] childDirs = new File(XxlJobFileAppender.getLogPath()).listFiles();
@@ -68,7 +69,7 @@ public class JobLogFileCleanThread {
                                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                                     logFileCreateDate = simpleDateFormat.parse(childFile.getName());
                                 } catch (ParseException e) {
-                                    logger.error(e.getMessage(), e);
+                                    LOGGER.error(e.getMessage(), e);
                                 }
                                 if (logFileCreateDate == null) {
                                     continue;
@@ -82,8 +83,8 @@ public class JobLogFileCleanThread {
                         }
 
                     } catch (Exception e) {
-                        if (!toStop) {
-                            logger.error(e.getMessage(), e);
+                        if (!toStopFlag) {
+                            LOGGER.error(e.getMessage(), e);
                         }
 
                     }
@@ -91,12 +92,12 @@ public class JobLogFileCleanThread {
                     try {
                         TimeUnit.DAYS.sleep(1);
                     } catch (InterruptedException e) {
-                        if (!toStop) {
-                            logger.error(e.getMessage(), e);
+                        if (!toStopFlag) {
+                            LOGGER.error(e.getMessage(), e);
                         }
                     }
                 }
-                logger.info(">>>>>>>>>>> xxl-job, executor JobLogFileCleanThread thread destroy.");
+                LOGGER.info(">>>>>>>>>>> xxl-job, executor JobLogFileCleanThread thread destroy.");
 
             }
         });
@@ -106,7 +107,7 @@ public class JobLogFileCleanThread {
     }
 
     public void toStop() {
-        toStop = true;
+        toStopFlag = true;
 
         if (localThread == null) {
             return;
@@ -117,7 +118,7 @@ public class JobLogFileCleanThread {
         try {
             localThread.join();
         } catch (InterruptedException e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         }
     }
 

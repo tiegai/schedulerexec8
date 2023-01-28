@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 
@@ -16,7 +15,7 @@ public final class JdkSerializeTool {
 
     }
 
-    private static Logger logger = LoggerFactory.getLogger(JdkSerializeTool.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdkSerializeTool.class);
 
 
     // ------------------------ serialize and unserialize ------------------------
@@ -27,27 +26,29 @@ public final class JdkSerializeTool {
      * @param object
      * @return
      */
+    @SuppressWarnings("all")
     public static byte[] serialize(Object object) {
         ObjectOutputStream oos = null;
         ByteArrayOutputStream baos = null;
+        byte[] bytes = null;
         try {
             // 序列化
             baos = new ByteArrayOutputStream();
             oos = new ObjectOutputStream(baos);
             oos.writeObject(object);
-            byte[] bytes = baos.toByteArray();
+            bytes = baos.toByteArray();
             return bytes;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             try {
                 oos.close();
                 baos.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
             }
         }
-        return null;
+        return bytes;
     }
 
 
@@ -57,6 +58,7 @@ public final class JdkSerializeTool {
      * @param bytes
      * @return
      */
+    @SuppressWarnings("all")
     public static <T> Object deserialize(byte[] bytes, Class<T> clazz) {
         ByteArrayInputStream bais = null;
         try {
@@ -65,12 +67,12 @@ public final class JdkSerializeTool {
             ObjectInputStream ois = new ObjectInputStream(bais);
             return ois.readObject();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         } finally {
             try {
                 bais.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
             }
         }
         return null;

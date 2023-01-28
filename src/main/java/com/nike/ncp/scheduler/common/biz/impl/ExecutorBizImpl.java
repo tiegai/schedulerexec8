@@ -1,17 +1,17 @@
 package com.nike.ncp.scheduler.common.biz.impl;
 
-import com.nike.ncp.scheduler.common.biz.model.LogResult;
-import com.nike.ncp.scheduler.common.biz.model.LogParam;
+import com.nike.ncp.scheduler.common.biz.ExecutorBiz;
 import com.nike.ncp.scheduler.common.biz.model.IdleBeatParam;
-import com.nike.ncp.scheduler.common.biz.model.KillParam;
 import com.nike.ncp.scheduler.common.biz.model.ReturnT;
 import com.nike.ncp.scheduler.common.biz.model.TriggerParam;
+import com.nike.ncp.scheduler.common.biz.model.LogResult;
+import com.nike.ncp.scheduler.common.biz.model.LogParam;
+import com.nike.ncp.scheduler.common.biz.model.KillParam;
+import com.nike.ncp.scheduler.common.enums.ExecutorBlockStrategyEnum;
 import com.nike.ncp.scheduler.common.executor.XxlJobExecutor;
 import com.nike.ncp.scheduler.common.glue.GlueFactory;
 import com.nike.ncp.scheduler.common.glue.GlueTypeEnum;
 import com.nike.ncp.scheduler.common.handler.IJobHandler;
-import com.nike.ncp.scheduler.common.biz.ExecutorBiz;
-import com.nike.ncp.scheduler.common.enums.ExecutorBlockStrategyEnum;
 import com.nike.ncp.scheduler.common.handler.impl.GlueJobHandler;
 import com.nike.ncp.scheduler.common.handler.impl.ScriptJobHandler;
 import com.nike.ncp.scheduler.common.log.XxlJobFileAppender;
@@ -30,6 +30,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
     }
 
     @Override
+    @SuppressWarnings("all")
     public ReturnT<String> idleBeat(IdleBeatParam idleBeatParam) {
 
         // isRunningOrHasQueue
@@ -46,6 +47,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
     }
 
     @Override
+    @SuppressWarnings("all")
     public ReturnT<String> run(TriggerParam triggerParam) {
         // load old：jobHandler + jobThread
         JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
@@ -56,13 +58,13 @@ public class ExecutorBizImpl implements ExecutorBiz {
         GlueTypeEnum glueTypeEnum = GlueTypeEnum.match(triggerParam.getGlueType());
         if (GlueTypeEnum.BEAN == glueTypeEnum) {
 
-            // new jobHandler
+            // new jobhandler
             IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
 
             // valid old jobThread
             if (jobThread != null && jobHandler != newJobHandler) {
                 // change handler, need kill old thread
-                removeOldReason = "change jobHandler or glue type, and terminate the old job thread.";
+                removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
 
                 jobThread = null;
                 jobHandler = null;
@@ -80,7 +82,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
             // valid old jobThread
             if (jobThread != null && !(jobThread.getHandler() instanceof GlueJobHandler && ((GlueJobHandler) jobThread.getHandler()).getGlueUpdatetime() == triggerParam.getGlueUpdatetime())) {
-                // change handler or glueSource updated, need kill old thread
+                // change handler or gluesource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
                 jobThread = null;
@@ -101,7 +103,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
 
             // valid old jobThread
             if (jobThread != null && !(jobThread.getHandler() instanceof ScriptJobHandler && ((ScriptJobHandler) jobThread.getHandler()).getGlueUpdatetime() == triggerParam.getGlueUpdatetime())) {
-                // change script or glueSource updated, need kill old thread
+                // change script or gluesource updated, need kill old thread
                 removeOldReason = "change job source or glue type, and terminate the old job thread.";
 
                 jobThread = null;

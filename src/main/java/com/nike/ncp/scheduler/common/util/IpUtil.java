@@ -31,6 +31,7 @@ public final class IpUtil {
 
     // ---------------------- valid ----------------------
 
+    @SuppressWarnings("all")
     private static InetAddress toValidAddress(InetAddress address) {
         if (address instanceof Inet6Address) {
             Inet6Address v6Address = (Inet6Address) address;
@@ -97,7 +98,7 @@ public final class IpUtil {
 
     // ---------------------- find ip ----------------------
 
-
+    @SuppressWarnings("all")
     private static InetAddress getLocalAddress0() {
         InetAddress localAddress = null;
         try {
@@ -106,7 +107,7 @@ public final class IpUtil {
             if (addressItem != null) {
                 return addressItem;
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
 
@@ -131,18 +132,18 @@ public final class IpUtil {
                                         return addressItem;
                                     }
                                 } catch (IOException e) {
-                                    // ignore
+                                    LOGGER.error(e.getMessage(), e);
                                 }
                             }
-                        } catch (Throwable e) {
+                        } catch (Exception e) {
                             LOGGER.error(e.getMessage(), e);
                         }
                     }
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     LOGGER.error(e.getMessage(), e);
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
         return localAddress;

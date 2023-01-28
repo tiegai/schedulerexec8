@@ -25,7 +25,7 @@ public final class XxlJobRemotingUtil {
 
     }
 
-    private static Logger logger = LoggerFactory.getLogger(XxlJobRemotingUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XxlJobRemotingUtil.class);
     public static final String XXL_JOB_ACCESS_TOKEN = "XXL-JOB-ACCESS-TOKEN";
 
 
@@ -38,7 +38,7 @@ public final class XxlJobRemotingUtil {
 
             connection.setSSLSocketFactory(newFactory);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
         }
         connection.setHostnameVerifier(new HostnameVerifier() {
             @Override
@@ -76,6 +76,7 @@ public final class XxlJobRemotingUtil {
      * @param returnTargClassOfT
      * @return
      */
+    @SuppressWarnings("all")
     public static ReturnT postBody(String url, String accessToken, int timeout, Object requestObj, Class returnTargClassOfT) {
         HttpURLConnection connection = null;
         BufferedReader bufferedReader = null;
@@ -146,12 +147,12 @@ public final class XxlJobRemotingUtil {
                 ReturnT returnT = GsonTool.fromJson(resultJson, ReturnT.class, returnTargClassOfT);
                 return returnT;
             } catch (Exception e) {
-                logger.error("xxl-job remoting (url=" + url + ") response content invalid(" + resultJson + ").", e);
+                LOGGER.error("xxl-job remoting (url=" + url + ") response content invalid(" + resultJson + ").", e);
                 return new ReturnT<String>(ReturnT.FAIL_CODE, "xxl-job remoting (url=" + url + ") response content invalid(" + resultJson + ").");
             }
 
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             return new ReturnT<String>(ReturnT.FAIL_CODE, "xxl-job remoting error(" + e.getMessage() + "), for url : " + url);
         } finally {
             try {
@@ -162,7 +163,7 @@ public final class XxlJobRemotingUtil {
                     connection.disconnect();
                 }
             } catch (Exception e2) {
-                logger.error(e2.getMessage(), e2);
+                LOGGER.error(e2.getMessage(), e2);
             }
         }
     }
