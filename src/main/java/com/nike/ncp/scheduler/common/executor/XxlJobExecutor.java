@@ -122,7 +122,7 @@ public class XxlJobExecutor {
     // ---------------------- admin-client (rpc invoker) ----------------------
     private static List<AdminBiz> adminBizList;
 
-    private void initAdminBizList(String adminAddressesParam, String accessTokenParam) throws Exception {
+    private synchronized void initAdminBizList(String adminAddressesParam, String accessTokenParam) throws Exception {
         if (adminAddressesParam != null && adminAddressesParam.trim().length() > 0) {
             for (String addressTemp : adminAddressesParam.trim().split(",")) {
                 if (addressTemp != null && addressTemp.trim().length() > 0) {
@@ -191,6 +191,7 @@ public class XxlJobExecutor {
         return jobHandlerRepository.put(name, jobHandler);
     }
 
+    @SuppressWarnings("all")
     protected void registJobHandler(XxlJob xxlJob, Object bean, Method executeMethod) {
         if (xxlJob == null) {
             return;

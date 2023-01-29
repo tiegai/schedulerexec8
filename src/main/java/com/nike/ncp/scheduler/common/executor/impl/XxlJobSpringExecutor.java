@@ -34,7 +34,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         /*initJobHandlerRepository(applicationContext);*/
 
         // init JobHandler Repository (for method)
-        initJobHandlerMethodRepository(applicationContext);
+        initJobHandlerMethodRepository(applicationContextValue);
 
         // refresh GlueFactory
         GlueFactory.refreshInstance(1);
@@ -76,6 +76,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         }
     }*/
 
+    @SuppressWarnings("all")
     private void initJobHandlerMethodRepository(ApplicationContext applicationContextParam) {
         if (applicationContextParam == null) {
             return;
@@ -123,15 +124,20 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
     }
 
     // ---------------------- applicationContext ----------------------
-    private static ApplicationContext applicationContext;
+    private static ApplicationContext applicationContextValue;
+
+    public static void setValue(ApplicationContext applicationContext) {
+        XxlJobSpringExecutor.applicationContextValue = applicationContext;
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        XxlJobSpringExecutor.applicationContext = applicationContext;
+//        XxlJobSpringExecutor.applicationContext = applicationContext;
+        setValue(applicationContext);
     }
 
     public static ApplicationContext getApplicationContext() {
-        return applicationContext;
+        return applicationContextValue;
     }
 
     /*
