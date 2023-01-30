@@ -88,6 +88,7 @@ ext {
 	nikeSfxVersion = '4.6.1.90'
 	wingtipsVersion = '0.23.1'
 	wingtipsInternalVersion = '7.0.0.42'
+	springBootTomcatVersion = '9.0.65'
 }
 
 dependencies {
@@ -99,9 +100,17 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.codehaus.groovy/groovy
 	implementation 'org.codehaus.groovy:groovy:3.0.10'
 	implementation 'com.google.code.gson:gson:2.9.0'
+	// https://mvnrepository.com/artifact/io.swagger/swagger-annotations
+	//implementation group: 'io.swagger', name: 'swagger-annotations', version: '1.6.9'
+	// Swagger UI
+	implementation 'io.springfox:springfox-swagger2:2.10.5'
+	implementation 'io.springfox:springfox-swagger-ui:2.10.5'
+	implementation 'com.github.xiaoymin:knife4j-openapi2-spring-boot-starter:4.0.0'
+	implementation("org.apache.tomcat.embed:tomcat-embed-core:${springBootTomcatVersion}")
 
 
-    // Spring dependencies
+
+	// Spring dependencies
     implementation("org.springframework.boot:spring-boot-starter-actuator") //https://howtodoinjava.com/spring-boot/actuator-endpoints-example/
 
 
