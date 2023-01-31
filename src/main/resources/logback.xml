@@ -6,7 +6,8 @@
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+<!--            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>-->
+            <pattern>LOG=%-5level %date{ISO8601} [%thread] [app=echo-3, version=1.1.76.73, commitId=123412] [traceId=%X{traceId:-}, runId=${INSTANCE_ID}, ctxId=] [method=%M] %class{36}:%L - %msg%n</pattern>
         </encoder>
     </appender>
 
