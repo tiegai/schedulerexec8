@@ -36,7 +36,7 @@ Map ecsServiceSettings = [
     'HealthCheckPort'          : 8080,
     'ListenerRulePriority'     : 2,
     'ContainerDesiredCount'    : 1,
-    'UseSplunkTaskDriver'      : 'true',
+    'UseSplunkTaskDriver'      : 'false',
     'ServiceRoleName'          : 'arn:aws-cn:iam::128123422106:role/gc-cds-jenkins',
     'TaskExecutionRoleArn'     : 'arn:aws-cn:iam::128123422106:role/gc-ncp-memberunlock-ecs',
     'Environment'              : 'test',
