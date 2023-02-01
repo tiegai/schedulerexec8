@@ -12,7 +12,7 @@ Map accountSettings = [
     test: [
         accountId        : '128123422106',
         securityGroups   : 'sg-0acc524825338bd51',
-        privateSubnets   : 'subnet-0075a560decfbdc3f',
+        privateSubnets   : 'subnet-0075a560decfbdc3f,subnet-066e0ec7e4787084e,subnet-02fbfc88a1e993db6',
         vpcId            : 'vpc-083124926037',
         awsRole          : 'gc-cds-jenkins',
         awsRegion        : 'cn-northwest-1',
