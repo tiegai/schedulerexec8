@@ -8,4 +8,4 @@ COPY build/libs/*.jar /opt/app/app.jar
 EXPOSE 8080 9080
 
 #TODO , add JVM params
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-Dsfx_org_name=Commerce", "-Dspring.profiles.active=${CLOUD_ENVIRONMENT}",  "-jar","/opt/app/app.jar"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom", "-Duser.timezone=Asia/Shanghai", "-Dsfx_org_name=Commerce", "-Dspring.profiles.active=${CLOUD_ENVIRONMENT}",  "-jar","/opt/app/app.jar"]
