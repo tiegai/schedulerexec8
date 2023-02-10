@@ -36,7 +36,7 @@ Map ecsServiceSettings = [
     'HealthCheckPort'          : 8080,
     'ListenerRulePriority'     : 2,
     'ContainerDesiredCount'    : 1,
-    'UseSplunkTaskDriver'      : 'false',
+    'UseSplunkTaskDriver'      : 'true',
     'ServiceRoleName'          : 'arn:aws-cn:iam::128123422106:role/gc-cds-jenkins',
     'TaskExecutionRoleArn'     : 'arn:aws-cn:iam::128123422106:role/gc-ncp-memberunlock-ecs',
     'Environment'              : 'test',
@@ -106,7 +106,7 @@ def cache = [
 
 def build = [
     image       : 'gradle:jdk11-focal',
-    cmd         : './gradlew clean build --parallel --daemon --build-cache',
+    cmd         : './gradlew clean build --parallel --daemon --build-cache && chmod +x ./docker-entrypoint.sh && git log -3 > ./build/git.log',
     artifacts   : ['build/libs/'],
     cache       : [
         tool        : 'gradle',

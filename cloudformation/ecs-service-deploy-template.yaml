@@ -162,7 +162,7 @@ Parameters:
 
   SplunkIndex:
     Type: String
-    Default: 'test_7d'
+    Default: 'np-dockerlogs'
 
   SplunkUrl:
     Type: String
@@ -173,7 +173,7 @@ Parameters:
 
   SplunkFormat:
     Type: String
-    Default: 'inline'
+    Default: 'raw'
 
   UseJsonFileLogDriver:
     Type: String
@@ -338,16 +338,21 @@ Resources:
                   splunk-url: !Ref SplunkUrl
                   splunk-insecureskipverify: "true"
                   splunk-index: !Ref SplunkIndex
-                  splunk-source: "docker_driver"
-                  splunk-sourcetype: !Ref SplunkApplicationName
+                  splunk-source: "onencp_docker_driver"
+                  splunk-sourcetype: !Sub "onencp-${ServiceName}"
                   splunk-format: !Ref SplunkFormat
-                  tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+                  tag: ""
+                  env: ONENCP_ECS_TASK_ID, ONENCP_COMMIT_ID
+                  mode: "non-blocking"
+                  max-buffer-size: "4m"
+                  splunk-verify-connection: false
               -
                 LogDriver: awslogs
                 Options:
                   awslogs-group: !Sub "${ApplicationGroup}/${AWS::StackName}"
                   awslogs-region: !Ref "AWS::Region"
                   awslogs-stream-prefix: !Ref "AWS::StackName"
+                  awslogs-multiline-pattern: "^LOG"
           Environment:
             - Name: env
               Value: !Ref Environment
@@ -536,4 +541,3 @@ Outputs:
   EcsService:
     Description: ARN of the deployed ECS Service
     Value: !Ref Service
-
