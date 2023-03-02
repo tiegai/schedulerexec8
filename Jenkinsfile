@@ -133,7 +133,7 @@ def config;
 
 
 node {
-    if (params.Flow == 'RELEASE') {
+    /* if (params.Flow == 'RELEASE') {
         splunk = withCerberus.readSecrets(
             env         : 'china-v2',
             sdbPath     : 'shared/notification/credentials',
@@ -143,7 +143,7 @@ node {
             env         : 'china-v2',
             sdbPath     : 'shared/notification/credentials',
         )
-    }
+    } */
 
     checkout scm
     withGit(credentialsId : 'GHEC') {
@@ -220,9 +220,9 @@ node {
                 deploy          : [
                     cloudFormationTemplate      : cloudformationTemplatePath,
                     parameters                  : [
-                        'SplunkToken'                   : "${splunk['ecs-splunk-test-token']}",
-                        'SplunkIndex'                   : "${splunk['ecs-splunk-test-index']}",
-                        'SplunkUrl'                     : "${splunk['ecs-splunk-test-url']}",
+                        'SplunkToken'                   : "af13b2c8-f4e4-42e1-a957-5742b55c7a91",
+                        'SplunkIndex'                   : "np-dockerlogs",
+                        'SplunkUrl'                     : "https://gcsplunk-hec.nike.com",
                         'SplunkApplicationName'         : "${serviceLable}",
                         'SplunkApplicationName'         : "${serviceLable}",
                         'ContainerDeployTag'            : "${imageTag}",
