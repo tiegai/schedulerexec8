@@ -2,10 +2,15 @@ package com.nike.ncp.scheduler.jobhandler;
 
 import com.nike.ncp.scheduler.common.context.XxlJobHelper;
 import com.nike.ncp.scheduler.common.handler.annotation.XxlJob;
+import com.nike.ncp.scheduler.service.RestService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -29,6 +34,9 @@ public class SampleXxlJob {
     private static final Logger LOGGER = LoggerFactory.getLogger(SampleXxlJob.class);
 
     private static final int STATUS_CODE_SUCCESS = 200;
+
+    @Resource
+    private transient RestService restService;
 
     /*@XxlJob("oneJobHandler")
     public ReturnT<String> oneJobHandler(String param) throws Exception {
@@ -275,6 +283,8 @@ public class SampleXxlJob {
     @SuppressWarnings("all")
     public void basicHttpJobHandler() throws Exception {
 
+        System.out.println("====================basicHttpJobHandler==========");
+
         // param parse
         String param = XxlJobHelper.getJobParam();
         if (param == null || param.trim().length() == 0) {
@@ -390,6 +400,63 @@ public class SampleXxlJob {
     public void demoJobHandler2() throws Exception {
         XxlJobHelper.log("XXL-JOB, Hello World.");
     }
+
+    @XxlJob("restTemplateJobHandler")
+    @SuppressWarnings("all")
+    public void restTemplateJobHandler() throws Exception {
+
+        // param parse
+        String param = XxlJobHelper.getJobParam();
+        if (param == null || param.trim().length() == 0) {
+            XxlJobHelper.log("param[" + param + "] invalid.");
+
+            XxlJobHelper.handleFail();
+            return;
+        }
+
+        String[] httpParams = param.split("\n");
+        String url = null;
+        String method = null;
+        String data = null;
+        for (String httpParam : httpParams) {
+            if (httpParam.startsWith("url:")) {
+                url = httpParam.substring(httpParam.indexOf("url:") + 4).trim();
+            }
+            if (httpParam.startsWith("method:")) {
+                method = httpParam.substring(httpParam.indexOf("method:") + 7).trim().toUpperCase();
+            }
+            if (httpParam.startsWith("data:")) {
+                data = httpParam.substring(httpParam.indexOf("data:") + 5).trim();
+            }
+        }
+
+        // param valid
+        if (url == null || url.trim().length() == 0) {
+            XxlJobHelper.log("url[" + url + "] invalid.");
+
+            XxlJobHelper.handleFail();
+            return;
+        }
+        if (method == null || !Arrays.asList("GET", "POST").contains(method)) {
+            XxlJobHelper.log("method[" + method + "] invalid.");
+
+            XxlJobHelper.handleFail();
+            return;
+        }
+
+        @SuppressWarnings("DLS_DEAD_LOCAL_STORE")
+        HttpHeaders headers = restService.createHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            restService.exchange(url, HttpMethod.POST, headers, null, null);
+            LOGGER.info(url + " execute handle success!");
+        } catch (Exception e) {
+            LOGGER.error("upstream error " + e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+
+    }
+
 
     public void init() {
         LOGGER.info("init");

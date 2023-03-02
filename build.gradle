@@ -89,9 +89,15 @@ ext {
 	wingtipsVersion = '0.23.1'
 	wingtipsInternalVersion = '7.0.0.42'
 	springBootTomcatVersion = '9.0.65'
+	lombokVersion = '1.18.24'
 }
 
 dependencies {
+	compileOnly("org.projectlombok:lombok:${lombokVersion}")
+	annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+	testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+	testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
