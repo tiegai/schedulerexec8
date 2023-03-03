@@ -3,8 +3,11 @@ package com.nike.ncp.scheduler.jobhandler;
 import com.nike.ncp.scheduler.common.context.XxlJobHelper;
 import com.nike.ncp.scheduler.common.handler.annotation.XxlJob;
 import com.nike.ncp.scheduler.service.RestService;
+import com.nike.wingtips.Span;
+import com.nike.wingtips.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -404,6 +407,9 @@ public class SampleXxlJob {
     @XxlJob("restTemplateJobHandler")
     @SuppressWarnings("all")
     public void restTemplateJobHandler() throws Exception {
+        Span traceSpan = Tracer.getInstance().startSpanInCurrentContext("ncp-scheduler-span",
+                Span.SpanPurpose.CLIENT);
+        MDC.put("traceId", traceSpan.getTraceId());
 
         // param parse
         String param = XxlJobHelper.getJobParam();
@@ -447,16 +453,18 @@ public class SampleXxlJob {
         @SuppressWarnings("DLS_DEAD_LOCAL_STORE")
         HttpHeaders headers = restService.createHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("X-B3-TraceId", traceSpan.getTraceId());
+        headers.add("X-B3-SpanId", traceSpan.getSpanId());
         try {
             restService.exchange(url, HttpMethod.POST, headers, null, null);
             LOGGER.info(url + " execute handle success!");
         } catch (Exception e) {
             LOGGER.error("upstream error " + e.getMessage(), e);
             throw new RuntimeException(e);
+        } finally {
+            traceSpan.close();
         }
-
     }
-
 
     public void init() {
         LOGGER.info("init");
