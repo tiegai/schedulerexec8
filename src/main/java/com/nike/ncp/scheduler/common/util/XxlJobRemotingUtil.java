@@ -80,16 +80,13 @@ public final class XxlJobRemotingUtil {
     public static ReturnT postBody(String url, String accessToken, int timeout, Object requestObj, Class returnTargClassOfT) {
         HttpURLConnection connection = null;
         BufferedReader bufferedReader = null;
-        LOGGER.info("url: " + url);
         try {
             // connection
             URL realUrl = new URL(url);
-            LOGGER.info("realUrl: " + realUrl);
             connection = (HttpURLConnection) realUrl.openConnection();
 
             // trust-https
             boolean useHttps = url.startsWith("https");
-            LOGGER.info("useHttps: " + useHttps);
             if (useHttps) {
                 HttpsURLConnection https = (HttpsURLConnection) connection;
                 trustAllHosts(https);

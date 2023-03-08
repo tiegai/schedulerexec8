@@ -253,7 +253,6 @@ public class SampleXxlJob {
             String responseMsg = result.toString();
 
             XxlJobHelper.log(responseMsg);
-            System.out.println("http remote:executor" + responseMsg);
 
             return;
         } catch (Exception e) {
@@ -285,8 +284,6 @@ public class SampleXxlJob {
     @XxlJob("basicHttpJobHandler")
     @SuppressWarnings("all")
     public void basicHttpJobHandler() throws Exception {
-
-        System.out.println("====================basicHttpJobHandler==========");
 
         // param parse
         String param = XxlJobHelper.getJobParam();
@@ -374,7 +371,6 @@ public class SampleXxlJob {
             String responseMsg = result.toString();
 
             XxlJobHelper.log(responseMsg);
-            System.out.println("http remote:basicHttpJobHandler" + responseMsg);
 
             return;
         } catch (Exception e) {
